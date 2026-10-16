@@ -6,11 +6,8 @@ import android.app.Dialog
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.LinearGradient
 import android.graphics.Paint
-import android.graphics.RadialGradient
 import android.graphics.RectF
-import android.graphics.Shader
 import android.os.Bundle
 import android.view.Gravity
 import android.view.MotionEvent
@@ -31,7 +28,7 @@ import kotlin.math.roundToInt
 
 // ============================================================== Toggle3D
 
-/** 3D switch: sunken track that fills with neon when on, glossy sphere knob. */
+/** Line switch: hairline capsule with a small disc; on = bright line, white disc on the right. */
 class Toggle3D(context: Context) : View(context) {
     var onCheckedChange: ((Boolean) -> Unit)? = null
     var isChecked = false
@@ -39,11 +36,8 @@ class Toggle3D(context: Context) : View(context) {
     private var pos = 0f
     private var anim: ValueAnimator? = null
     private val track = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val trackShade = Paint(Paint.ANTI_ALIAS_FLAG)
     private val on = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val glow = Paint(Paint.ANTI_ALIAS_FLAG)
     private val knob = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val knobShadow = Paint(Paint.ANTI_ALIAS_FLAG)
     private val r = RectF()
 
     init {
@@ -76,30 +70,25 @@ class Toggle3D(context: Context) : View(context) {
     override fun onMeasure(w: Int, h: Int) = setMeasuredDimension(dpi(60), dpi(48))
 
     override fun onDraw(canvas: Canvas) {
-        val tw = dp(52); val th = dp(30)
+        val tw = dp(44); val th = dp(24)
         val left = (width - tw) / 2; val top = (height - th) / 2
-        r.set(left, top, left + tw, top + th)
-        val rad = th / 2
-        if (pos > 0f) {
-            glow.shader = RadialGradient(r.centerX(), r.centerY(), tw * 0.75f, Neon.withAlpha(Neon.CYAN, 0.35f * pos), 0, Shader.TileMode.CLAMP)
-            canvas.drawCircle(r.centerX(), r.centerY(), tw * 0.75f, glow)
-        }
-        track.color = Neon.SUNKEN
+        val sw = dp(1.2f)
+        r.set(left + sw / 2, top + sw / 2, left + tw - sw / 2, top + th - sw / 2)
+        val rad = r.height() / 2
+        track.style = Paint.Style.STROKE
+        track.strokeWidth = sw
+        track.color = Neon.blend(0x47FFFFFF, Neon.withAlpha(Neon.TEXT1, 0.9f), pos)
         canvas.drawRoundRect(r, rad, rad, track)
-        on.shader = LinearGradient(r.left, 0f, r.right, 0f, Neon.AQUA, null, Shader.TileMode.CLAMP)
-        on.alpha = (pos * 255).toInt()
-        canvas.drawRoundRect(r, rad, rad, on)
-        trackShade.shader = LinearGradient(0f, r.top, 0f, r.top + th * 0.6f, Neon.withAlpha(Color.BLACK, 0.55f), 0, Shader.TileMode.CLAMP)
-        canvas.drawRoundRect(r, rad, rad, trackShade)
-        val kr = th / 2 - dp(3)
-        val kx = r.left + dp(3) + kr + (tw - 2 * dp(3) - 2 * kr) * pos
-        val ky = r.centerY()
-        knobShadow.shader = RadialGradient(kx, ky + dp(2.5f), kr * 1.35f, Neon.withAlpha(Color.BLACK, 0.6f), 0, Shader.TileMode.CLAMP)
-        canvas.drawCircle(kx, ky + dp(2.5f), kr * 1.35f, knobShadow)
-        val base = Neon.blend(0xFFB9C0E8.toInt(), Color.WHITE, pos)
-        knob.shader = RadialGradient(kx - kr * 0.35f, ky - kr * 0.4f, kr * 1.6f,
-            intArrayOf(Color.WHITE, base, Neon.darken(base, 0.35f)), floatArrayOf(0f, 0.5f, 1f), Shader.TileMode.CLAMP)
-        canvas.drawCircle(kx, ky, kr, knob)
+        if (pos > 0f) {
+            on.shader = null
+            on.color = Neon.withAlpha(Color.WHITE, 0.08f * pos)
+            canvas.drawRoundRect(r, rad, rad, on)
+        }
+        val kr = th / 2 - dp(5)
+        val kx = left + dp(5) + kr + (tw - 2 * dp(5) - 2 * kr) * pos
+        knob.shader = null
+        knob.color = Neon.blend(Neon.TEXT3, Neon.TEXT1, pos)
+        canvas.drawCircle(kx, top + th / 2, kr, knob)
     }
 
     override fun onInitializeAccessibilityNodeInfo(info: AccessibilityNodeInfo) {
@@ -112,7 +101,7 @@ class Toggle3D(context: Context) : View(context) {
 
 // ============================================================== NeonSlider
 
-/** Slider: sunken track, glowing neon fill, glossy sphere thumb. */
+/** Slider: hairline track, white progress line, thin ring thumb. */
 class NeonSlider(context: Context) : View(context) {
     var min = 0f
     var max = 1f
@@ -149,20 +138,22 @@ class NeonSlider(context: Context) : View(context) {
 
     override fun onDraw(canvas: Canvas) {
         val cy = height / 2f
-        val th = dp(8)
-        r.set(pad, cy - th / 2, width - pad, cy + th / 2)
-        track.color = Neon.SUNKEN
-        canvas.drawRoundRect(r, th / 2, th / 2, track)
+        val th = dp(1.5f)
         val x = pad + (width - 2 * pad) * frac
-        fill.shader = LinearGradient(pad, 0f, width - pad, 0f, Neon.AQUA, null, Shader.TileMode.CLAMP)
-        r.set(pad, cy - th / 2, x, cy + th / 2)
-        canvas.drawRoundRect(r, th / 2, th / 2, fill)
-        val kr = dp(11)
-        halo.shader = RadialGradient(x, cy, kr * (if (dragging) 2.4f else 1.7f), Neon.withAlpha(Neon.CYAN, if (dragging) 0.45f else 0.25f), 0, Shader.TileMode.CLAMP)
-        canvas.drawCircle(x, cy, kr * 2.4f, halo)
-        thumb.shader = RadialGradient(x - kr * 0.35f, cy - kr * 0.4f, kr * 1.6f,
-            intArrayOf(Color.WHITE, 0xFFD8F8FF.toInt(), 0xFF7FA4C8.toInt()), floatArrayOf(0f, 0.5f, 1f), Shader.TileMode.CLAMP)
-        canvas.drawCircle(x, cy, kr, thumb)
+        track.color = 0x33FFFFFF
+        canvas.drawRect(pad, cy - th / 2, width - pad, cy + th / 2, track)
+        fill.shader = null
+        fill.color = Neon.TEXT1
+        canvas.drawRect(pad, cy - th / 2, x, cy + th / 2, fill)
+        val kr = dp(if (dragging) 10 else 8)
+        halo.shader = null
+        halo.color = Neon.BG0
+        canvas.drawCircle(x, cy, kr, halo)
+        thumb.shader = null
+        thumb.style = Paint.Style.STROKE
+        thumb.strokeWidth = dp(1.4f)
+        thumb.color = Neon.TEXT1
+        canvas.drawCircle(x, cy, kr - thumb.strokeWidth / 2, thumb)
     }
 
     @android.annotation.SuppressLint("ClickableViewAccessibility")
@@ -214,7 +205,7 @@ class NeonSlider(context: Context) : View(context) {
 
 // ============================================================== Chips + FlowLayout
 
-/** Pill chip. Checkable chips glow with an AQUA outline when checked. */
+/** Outlined pill chip; checked = bright white outline and text. */
 class NeonChip(context: Context, text: CharSequence, iconRes: Int? = null, val checkable: Boolean = true) : LinearLayout(context) {
     var onToggle: ((Boolean) -> Unit)? = null
     var isOn = false
@@ -246,11 +237,11 @@ class NeonChip(context: Context, text: CharSequence, iconRes: Int? = null, val c
     private fun render() {
         setTag(R.id.tag_depth_insets, null)
         setPadding(dpi(14), dpi(6), dpi(14), dpi(6))
-        depthBackground(GlassCardDrawable(context, radius = -1f, elevation = dp(5), pressable = true,
-            outline = if (isOn) Neon.AQUA else null, glowColor = if (isOn) Neon.withAlpha(Neon.CYAN, 0.7f) else null))
+        depthBackground(GlassCardDrawable(context, radius = -1f, elevation = dp(5), pressable = true, topColor = 0,
+            outline = if (isOn) Neon.AQUA else null))
         val c = if (isOn) Neon.TEXT1 else Neon.TEXT2
         textView.setTextColor(c)
-        iconView?.imageTintList = android.content.res.ColorStateList.valueOf(if (isOn) Neon.CYAN else Neon.TEXT2)
+        iconView?.imageTintList = android.content.res.ColorStateList.valueOf(if (isOn) Neon.TEXT1 else Neon.TEXT2)
     }
 
     override fun onInitializeAccessibilityNodeInfo(info: AccessibilityNodeInfo) {
@@ -297,7 +288,7 @@ class FlowLayout(context: Context, private val hGap: Int = context.dpi(4), priva
 
 // ============================================================== Buttons
 
-/** 3D button with optional leading icon and a loading state. */
+/** Outlined pill button with optional leading line icon and a loading state. */
 class NeonButton(context: Context, text: CharSequence, iconRes: Int? = null, val kind: Kind = Kind.PRIMARY) : LinearLayout(context) {
     enum class Kind { PRIMARY, DANGER, SECONDARY, GHOST }
 
@@ -312,14 +303,14 @@ class NeonButton(context: Context, text: CharSequence, iconRes: Int? = null, val
         isClickable = true
         isFocusable = true
         val fg = when (kind) {
-            Kind.PRIMARY -> Neon.ON_NEON
-            Kind.DANGER -> Color.WHITE
-            Kind.SECONDARY -> Neon.TEXT1
-            Kind.GHOST -> Neon.CYAN
+            Kind.PRIMARY -> Neon.TEXT1
+            Kind.DANGER -> Neon.RED
+            Kind.SECONDARY -> Neon.TEXT2
+            Kind.GHOST -> Neon.TEXT1
         }
         textView.setTextColor(fg)
         iconView?.let {
-            it.imageTintList = android.content.res.ColorStateList.valueOf(if (kind == Kind.SECONDARY) Neon.CYAN else fg)
+            it.imageTintList = android.content.res.ColorStateList.valueOf(fg)
             addView(it, LayoutParams(dpi(22), dpi(22)).apply { marginEnd = dpi(10) })
         }
         addView(textView)
@@ -327,7 +318,7 @@ class NeonButton(context: Context, text: CharSequence, iconRes: Int? = null, val
         when (kind) {
             Kind.PRIMARY -> { minimumHeight = dpi(56); depthBackground(NeonButtonDrawable(context, Neon.AQUA)) }
             Kind.DANGER -> { minimumHeight = dpi(56); depthBackground(NeonButtonDrawable(context, Neon.FLAME)) }
-            Kind.SECONDARY -> { minimumHeight = dpi(52); depthBackground(GlassCardDrawable(context, radius = -1f, elevation = dp(8), outline = Neon.ELECTRIC, pressable = true)) }
+            Kind.SECONDARY -> { minimumHeight = dpi(52); depthBackground(NeonButtonDrawable(context, Neon.ELECTRIC)) }
             Kind.GHOST -> { minimumHeight = dpi(48) }
         }
     }
@@ -367,18 +358,18 @@ class NeonButton(context: Context, text: CharSequence, iconRes: Int? = null, val
     }
 }
 
-/** Circular 3D icon button: glass disc or colored neon sphere. */
+/** Circular icon button: a thin ring around a line icon (white ring when [colors] given). */
 class IconButton3D(context: Context, iconRes: Int, description: CharSequence, colors: IntArray? = null, sizeDp: Int = 44) : FrameLayout(context) {
-    private val iconView = context.icon(iconRes, if (colors == null) Neon.TEXT1 else Neon.ON_NEON, 22)
+    private val iconView = context.icon(iconRes, if (colors?.contains(Neon.RED) == true) Neon.RED else Neon.TEXT1, 22)
 
     init {
         isClickable = true
         isFocusable = true
         contentDescription = description
         if (colors == null) {
-            depthBackground(GlassCardDrawable(context, radius = -1f, elevation = dp(6), pressable = true))
+            depthBackground(SphereDrawable(context, 0x40FFFFFF, glow = false, shadow = dp(6)))
         } else {
-            depthBackground(SphereDrawable(context, colors.first(), colors.last(), glow = true, shadow = dp(6)))
+            depthBackground(SphereDrawable(context, colors.first(), glow = true, shadow = dp(6)))
         }
         addView(iconView, LayoutParams(dpi(22), dpi(22), Gravity.CENTER))
         minimumWidth = dpi(sizeDp)
@@ -401,7 +392,7 @@ class IconButton3D(context: Context, iconRes: Int, description: CharSequence, co
 
 // ============================================================== SegmentedControl
 
-/** Sunken well with segments; the selected one is a raised glass pill with a neon outline. */
+/** Hairline capsule with segments; the selected one is outlined in white. */
 class SegmentedControl(context: Context) : LinearLayout(context) {
     var onSelect: ((Int) -> Unit)? = null
     var selectedIndex = 0
@@ -446,7 +437,7 @@ class SegmentedControl(context: Context) : LinearLayout(context) {
             if (on) {
                 seg.setTag(R.id.tag_depth_insets, null)
                 seg.setPadding(0, 0, 0, 0)
-                seg.depthBackground(GlassCardDrawable(context, radius = -1f, elevation = dp(5), outline = Neon.AQUA, topColor = Neon.SURFACE_HI))
+                seg.depthBackground(GlassCardDrawable(context, radius = -1f, elevation = dp(5), outline = Neon.AQUA, topColor = 0x0DFFFFFF))
             } else {
                 seg.background = null
                 seg.setTag(R.id.tag_depth_insets, null)
@@ -455,7 +446,7 @@ class SegmentedControl(context: Context) : LinearLayout(context) {
             for (k in 0 until seg.childCount) {
                 when (val c = seg.getChildAt(k)) {
                     is TextView -> c.setTextColor(if (on) Neon.TEXT1 else Neon.TEXT2)
-                    is ImageView -> c.imageTintList = android.content.res.ColorStateList.valueOf(if (on) Neon.CYAN else Neon.TEXT2)
+                    is ImageView -> c.imageTintList = android.content.res.ColorStateList.valueOf(if (on) Neon.TEXT1 else Neon.TEXT2)
                 }
             }
             seg.isSelected = on
@@ -465,7 +456,7 @@ class SegmentedControl(context: Context) : LinearLayout(context) {
 
 // ============================================================== ListRow
 
-/** Settings / menu row: icon tile, title, subtitle, trailing view. */
+/** Settings / menu row: ringed line icon, title, subtitle, trailing view. */
 fun Context.listRow(
     iconRes: Int?, accent: Int, title: CharSequence, subtitle: CharSequence? = null,
     trailing: View? = null, onClick: (() -> Unit)? = null,
@@ -474,7 +465,7 @@ fun Context.listRow(
     setPadding(0, dpi(10), 0, dpi(10))
     iconRes?.let { addView(iconTile(it, accent), LinearLayout.LayoutParams(dpi(40), dpi(40)).apply { marginEnd = dpi(14) }) }
     val texts = vbox()
-    texts.addView(label(title, R.style.Text_Title, sizeSp = 16f))
+    texts.addView(label(title, R.style.Text_Title, sizeSp = 15f))
     subtitle?.let { texts.addView(label(it, R.style.Text_Body, sizeSp = 13f)) }
     addView(texts, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
     trailing?.let { addView(it) }
@@ -490,7 +481,7 @@ fun Context.chevron() = icon(R.drawable.ic_chevron_right, Neon.TEXT3, 22)
 
 // ============================================================== Bottom sheet
 
-/** Glass bottom sheet with grab handle, title, scrollable content and actions. */
+/** Bottom sheet: near-black panel with a hairline edge, grab handle, title, content and actions. */
 class NeonSheet(private val activity: Activity) {
     private val dialog = Dialog(activity, R.style.NeonBottomSheet)
     private val root = FrameLayout(activity)
@@ -514,11 +505,11 @@ class NeonSheet(private val activity: Activity) {
         root.setOnClickListener { dismiss() }
         panel.isClickable = true
         panel.setPadding(activity.dpi(20), activity.dpi(10), activity.dpi(20), activity.dpi(28) + activity.dpi(28))
-        panel.depthBackground(GlassCardDrawable(activity, radius = activity.dp(28), elevation = activity.dp(16), outline = intArrayOf(Neon.withAlpha(Neon.CYAN, 0.6f), Neon.withAlpha(Neon.VIOLET, 0.3f))))
+        panel.depthBackground(GlassCardDrawable(activity, radius = activity.dp(28), elevation = activity.dp(16), topColor = Neon.BG1))
         val handle = View(activity).apply {
-            background = android.graphics.drawable.GradientDrawable().apply { cornerRadius = activity.dp(3); setColor(0x40FFFFFF) }
+            background = android.graphics.drawable.GradientDrawable().apply { cornerRadius = activity.dp(2); setColor(0x40FFFFFF) }
         }
-        panel.addView(handle, LinearLayout.LayoutParams(activity.dpi(40), activity.dpi(5)).apply { gravity = Gravity.CENTER_HORIZONTAL; bottomMargin = activity.dpi(14) })
+        panel.addView(handle, LinearLayout.LayoutParams(activity.dpi(36), activity.dpi(3)).apply { gravity = Gravity.CENTER_HORIZONTAL; bottomMargin = activity.dpi(14) })
         panel.addView(titleView)
         panel.addView(subtitleView, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = activity.dpi(4) })
         val scroll = object : ScrollView(activity) {
@@ -581,7 +572,7 @@ class NeonSheet(private val activity: Activity) {
             sheet.title = title
             val list = activity.vbox()
             items.forEach { item ->
-                val color = if (item.destructive) Neon.RED else Neon.CYAN
+                val color = if (item.destructive) Neon.RED else Neon.TEXT1
                 val row = activity.listRow(item.iconRes, color, item.label) {
                     sheet.dismiss()
                     item.onClick()
@@ -598,7 +589,7 @@ class NeonSheet(private val activity: Activity) {
 
 // ============================================================== Snack
 
-/** Glass snackbar that slides up inside [parent]. */
+/** Hairline snackbar that slides up inside [parent]. */
 object Snack {
     private var current: View? = null
 
@@ -608,11 +599,11 @@ object Snack {
         val bar = ctx.hbox().apply {
             setPadding(ctx.dpi(18), ctx.dpi(8), ctx.dpi(8), ctx.dpi(8))
             minimumHeight = ctx.dpi(56)
-            depthBackground(GlassCardDrawable(ctx, radius = ctx.dp(18), elevation = ctx.dp(12), topColor = Neon.SURFACE_HI, outline = intArrayOf(Neon.withAlpha(Neon.CYAN, 0.5f), Neon.withAlpha(Neon.VIOLET, 0.3f))))
+            depthBackground(GlassCardDrawable(ctx, radius = ctx.dp(18), elevation = ctx.dp(12), topColor = Neon.SURFACE_HI))
             addView(ctx.label(text, R.style.Text_Body, Neon.TEXT1, 14f), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         }
         if (actionLabel != null && action != null) {
-            val btn = ctx.label(actionLabel, R.style.Text_Button, Neon.CYAN, 15f).apply {
+            val btn = ctx.label(actionLabel, R.style.Text_Button, Neon.TEXT1, 15f).apply {
                 setPadding(ctx.dpi(14), ctx.dpi(12), ctx.dpi(14), ctx.dpi(12))
                 isClickable = true
                 isFocusable = true

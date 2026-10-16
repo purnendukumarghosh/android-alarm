@@ -78,7 +78,7 @@ class VoicesPage(private val activity: Activity, private val host: PageHost) : P
 
     private fun build() {
         // Hero.
-        val hero = activity.glassCard(padH = 18, padV = 16, glow = Neon.withAlpha(Neon.CYAN, 0.7f), radiusDp = 26)
+        val hero = activity.glassCard(padH = 18, padV = 16, radiusDp = 26)
         val row = activity.hbox()
         row.addView(ImageView(activity).apply { setImageResource(R.drawable.art_voice); contentDescription = null }, LinearLayout.LayoutParams(activity.dpi(112), activity.dpi(112)))
         val t = activity.vbox()
@@ -158,7 +158,7 @@ class VoicesPage(private val activity: Activity, private val host: PageHost) : P
         kit.add(tryCard, top = 4)
 
         // Tip.
-        val tip = activity.glassCard(outline = Neon.ELECTRIC)
+        val tip = activity.glassCard()
         tip.addView(activity.label(activity.getString(R.string.voices_tip_title), R.style.Text_Title, sizeSp = 16f))
         tip.addView(activity.label(activity.getString(R.string.voices_tip_body), sizeSp = 14f))
         val open = NeonButton(activity, activity.getString(R.string.voices_open_settings), R.drawable.ic_settings, NeonButton.Kind.GHOST)
@@ -226,7 +226,7 @@ class VoicesPage(private val activity: Activity, private val host: PageHost) : P
             }
         }
         val dot = View(activity).apply {
-            if (selected) depthBackground(SphereDrawable(activity, Neon.CYAN, Neon.GREEN, glow = true, shadow = dp(5)))
+            if (selected) depthBackground(SphereDrawable(activity, Neon.CYAN, glow = true, shadow = dp(5)))
             else background = android.graphics.drawable.GradientDrawable().apply {
                 shape = android.graphics.drawable.GradientDrawable.OVAL
                 setStroke(dpi(2), Neon.TEXT3)
@@ -239,7 +239,7 @@ class VoicesPage(private val activity: Activity, private val host: PageHost) : P
         })
         val t = activity.vbox()
         t.addView(activity.label(title, R.style.Text_Title, if (selected) Neon.TEXT1 else Neon.TEXT1, 16f))
-        t.addView(activity.label(detail, R.style.Text_Caption, if (selected) Neon.CYAN else Neon.TEXT2, 12f))
+        t.addView(activity.label(detail, R.style.Text_Caption, if (selected) Neon.TEXT1 else Neon.TEXT3, 12f))
         row.addView(t, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         val play = IconButton3D(activity, R.drawable.ic_play_arrow_fill, activity.getString(R.string.voices_preview_cd, title), sizeDp = 40)
         play.setOnClickListener { speak(activity.getString(R.string.voices_sample), voiceName) }

@@ -49,7 +49,7 @@ class AboutActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val root = FrameLayout(this).apply { background = GlowBackgroundDrawable(intArrayOf(Neon.VIOLET, Neon.CYAN, Neon.MAGENTA)) }
+        val root = FrameLayout(this).apply { background = GlowBackgroundDrawable() }
 
         content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -113,8 +113,8 @@ class AboutActivity : Activity() {
             ImageView(this).apply { setImageResource(artId); contentDescription = null }
         } else {
             FrameLayout(this).apply {
-                depthBackground(SphereDrawable(context, Neon.CYAN, Neon.VIOLET))
-                addView(icon(R.drawable.ic_alarm_fill, Neon.ON_NEON, 48), FrameLayout.LayoutParams(dpi(48), dpi(48), Gravity.CENTER))
+                depthBackground(SphereDrawable(context, Neon.CYAN, glow = false))
+                addView(icon(R.drawable.ic_alarm, Neon.TEXT1, 48), FrameLayout.LayoutParams(dpi(48), dpi(48), Gravity.CENTER))
             }
         }
         hero.addView(art, LinearLayout.LayoutParams(dpi(168), dpi(168)))
@@ -130,7 +130,7 @@ class AboutActivity : Activity() {
         hero.addView(text(getString(R.string.app_name), R.style.Text_Headline).apply {
             textSize = 32f
             gravity = Gravity.CENTER
-            neonText(Neon.AQUA)
+            neonText()
         }, matchWrap(top = 8))
         hero.addView(text(getString(R.string.about_tagline), R.style.Text_Body).apply { gravity = Gravity.CENTER }, matchWrap(top = 4))
         hero.addView(versionChip(), LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
@@ -142,7 +142,7 @@ class AboutActivity : Activity() {
     private fun versionChip(): View = text(getString(R.string.about_version, versionName()), R.style.Text_Caption).apply {
         setTextColor(Neon.TEXT2)
         setPadding(dpi(14), dpi(6), dpi(14), dpi(6))
-        depthBackground(GlassCardDrawable(context, radius = -1f, elevation = dp(6), outline = Neon.ELECTRIC))
+        depthBackground(GlassCardDrawable(context, radius = -1f, elevation = dp(6), topColor = 0))
     }
 
     private fun buildCreator() {
@@ -151,7 +151,7 @@ class AboutActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
             setPadding(dpi(20), dpi(24), dpi(20), dpi(20))
-            depthBackground(GlassCardDrawable(context, glowColor = Neon.withAlpha(Neon.BLUE, 0.9f), outline = intArrayOf(Neon.CYAN, Neon.VIOLET)))
+            depthBackground(GlassCardDrawable(context))
         }
 
         // Avatar with a LinkedIn badge.
@@ -166,12 +166,12 @@ class AboutActivity : Activity() {
             }
         }, FrameLayout.LayoutParams(dpi(112), dpi(112), Gravity.CENTER))
         val badge = FrameLayout(this).apply {
-            depthBackground(SphereDrawable(context, Color.WHITE, 0xFFD6E4F5.toInt(), glow = false, shadow = dp(5)))
+            depthBackground(SphereDrawable(context, Neon.CYAN, glow = false, shadow = dp(5)).apply { base = Neon.BG0 })
             isClickable = true
             isFocusable = true
             contentDescription = getString(R.string.about_open_linkedin)
             setOnClickListener { openLinkedIn() }
-            addView(ImageView(context).apply { setImageResource(R.drawable.about_ic_linkedin_brand) }, FrameLayout.LayoutParams(dpi(20), dpi(20), Gravity.CENTER))
+            addView(icon(R.drawable.about_ic_linkedin, Neon.TEXT1, 18), FrameLayout.LayoutParams(dpi(18), dpi(18), Gravity.CENTER))
         }
         avatarBox.addView(badge, FrameLayout.LayoutParams(dpi(36) + 2 * dpi(5), dpi(36) + dpi(10), Gravity.BOTTOM or Gravity.END))
         card.addView(avatarBox, LinearLayout.LayoutParams(dpi(132), dpi(124)))
@@ -190,7 +190,7 @@ class AboutActivity : Activity() {
             isFocusable = true
             contentDescription = getString(R.string.about_open_linkedin)
             setOnClickListener { openLinkedIn() }
-            depthBackground(NeonButtonDrawable(context, intArrayOf(0xFF0A66C2.toInt(), Neon.BLUE)))
+            depthBackground(NeonButtonDrawable(context))
             addView(icon(R.drawable.about_ic_linkedin, Color.WHITE, 22), LinearLayout.LayoutParams(dpi(22), dpi(22)))
             addView(text(getString(R.string.about_connect_linkedin), R.style.Text_Button).apply {
                 setTextColor(Color.WHITE)
@@ -358,7 +358,7 @@ class AboutActivity : Activity() {
         LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dpi(top) }
 }
 
-/** 3D avatar: glossy electric sphere with initials inside a rotating neon ring. */
+/** Avatar: initials in a thin white circle, orbited by a slowly turning hairline arc. */
 private class AvatarView(context: Context, private val initials: String) : View(context) {
     var ringRotation = 0f
         set(value) {
@@ -366,77 +366,53 @@ private class AvatarView(context: Context, private val initials: String) : View(
             invalidate()
         }
 
-    private val ring = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
-    private val glow = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
-    private val ball = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val spec = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val ring = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeCap = Paint.Cap.ROUND }
+    private val disc = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val label = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.WHITE
+        color = Neon.TEXT1
         textAlign = Paint.Align.CENTER
-        typeface = context.resources.getFont(R.font.manrope_extrabold)
-        setShadowLayer(context.dp(6), 0f, context.dp(2), 0x66000000)
+        letterSpacing = 0.08f
+        typeface = context.resources.getFont(R.font.manrope_extralight)
     }
+    private val arc = android.graphics.RectF()
 
     init {
-        setLayerType(LAYER_TYPE_SOFTWARE, null) // blur for the ring glow + text shadow on all API levels
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        val cx = w / 2f
-        val cy = h / 2f
         val r = minOf(w, h) / 2f
-        val colors = intArrayOf(Neon.CYAN, Neon.GREEN, Neon.BLUE, Neon.VIOLET, Neon.MAGENTA, Neon.CYAN)
-        ring.shader = SweepGradient(cx, cy, colors, null)
-        ring.strokeWidth = r * 0.07f
-        glow.shader = SweepGradient(cx, cy, colors, null)
-        glow.strokeWidth = r * 0.16f
-        glow.maskFilter = android.graphics.BlurMaskFilter(r * 0.12f, android.graphics.BlurMaskFilter.Blur.NORMAL)
-        val ballR = r * 0.74f
-        ball.shader = RadialGradient(
-            cx - ballR * 0.35f, cy - ballR * 0.4f, ballR * 1.7f,
-            intArrayOf(Neon.lighten(Neon.BLUE, 0.35f), Neon.BLUE, Neon.VIOLET, Neon.darken(Neon.VIOLET, 0.6f)),
-            floatArrayOf(0f, 0.3f, 0.7f, 1f), Shader.TileMode.CLAMP,
-        )
-        spec.shader = LinearGradient(0f, cy - ballR, 0f, cy, Neon.withAlpha(Color.WHITE, 0.45f), Neon.withAlpha(Color.WHITE, 0f), Shader.TileMode.CLAMP)
-        label.textSize = ballR * 0.78f
+        disc.strokeWidth = context.dp(1.4f)
+        disc.color = Neon.TEXT1
+        ring.strokeWidth = context.dp(1f)
+        label.textSize = r * 0.62f
     }
 
     override fun onDraw(canvas: Canvas) {
         val cx = width / 2f
         val cy = height / 2f
         val r = minOf(width, height) / 2f
-        val ringR = r * 0.86f
-        canvas.save()
-        canvas.rotate(ringRotation, cx, cy)
-        canvas.drawCircle(cx, cy, ringR, glow)
+        val ringR = r * 0.9f
+        arc.set(cx - ringR, cy - ringR, cx + ringR, cy + ringR)
+        ring.color = 0x24FFFFFF
         canvas.drawCircle(cx, cy, ringR, ring)
-        canvas.restore()
-        val ballR = r * 0.74f
-        canvas.drawCircle(cx, cy, ballR, ball)
-        // Curved glossy highlight on the upper half of the sphere.
-        canvas.drawOval(cx - ballR * 0.72f, cy - ballR * 0.94f, cx + ballR * 0.72f, cy - ballR * 0.05f, spec)
+        ring.color = Neon.withAlpha(Neon.TEXT1, 0.8f)
+        canvas.drawArc(arc, ringRotation - 90f, 70f, false, ring)
+        canvas.drawCircle(cx, cy, r * 0.72f, disc)
         val baseline = cy - (label.descent() + label.ascent()) / 2
         canvas.drawText(initials, cx, baseline, label)
     }
 }
 
-/** Rounded icon tile tinted with the feature's neon color, with a lit top rim. */
-private class TileDrawable(private val color: Int) : android.graphics.drawable.Drawable() {
-    private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val rim = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 2f }
-
-    override fun onBoundsChange(b: android.graphics.Rect) {
-        fill.shader = LinearGradient(0f, b.top.toFloat(), 0f, b.bottom.toFloat(), Neon.withAlpha(color, 0.26f), Neon.withAlpha(color, 0.08f), Shader.TileMode.CLAMP)
-        rim.shader = LinearGradient(0f, b.top.toFloat(), 0f, b.bottom.toFloat(), Neon.withAlpha(color, 0.75f), Neon.withAlpha(color, 0.05f), Shader.TileMode.CLAMP)
-    }
+/** Thin ring framing a feature's line icon. */
+private class TileDrawable(@Suppress("UNUSED_PARAMETER") color: Int) : android.graphics.drawable.Drawable() {
+    private val ring = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; setColor(0x2EFFFFFF) }
 
     override fun draw(canvas: Canvas) {
         val b = android.graphics.RectF(bounds)
-        val r = b.width() * 0.32f
-        canvas.drawRoundRect(b, r, r, fill)
-        b.inset(1f, 1f)
-        canvas.drawRoundRect(b, r, r, rim)
+        ring.strokeWidth = (b.width() / 40f).coerceAtLeast(1f)
+        b.inset(ring.strokeWidth / 2, ring.strokeWidth / 2)
+        canvas.drawOval(b, ring)
     }
 
     override fun setAlpha(alpha: Int) {}

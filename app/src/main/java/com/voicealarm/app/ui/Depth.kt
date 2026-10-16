@@ -20,12 +20,13 @@ import kotlin.math.ceil
 import kotlin.math.min
 
 /**
- * Hand-drawn 3D surfaces. Every drawable here reserves room around its body
- * for its own soft shadow / glow (see [DepthDrawable.insets]); use
- * [View.depthBackground] so that room is added to the view's padding.
+ * Monoline surfaces: flat near-black planes outlined by hairlines. Every
+ * drawable reserves a little room around its body (see
+ * [DepthDrawable.insets]) which works as consistent spacing between
+ * neighbours; use [View.depthBackground] so it is added to the padding.
  *
- * Shadows are blurred once into small ALPHA_8 bitmaps and cached, so they
- * render identically on every Android version and with hardware acceleration.
+ * [ShadowCache] is kept for the few soft effects that remain (it blurs once
+ * into small ALPHA_8 bitmaps).
  */
 abstract class DepthDrawable : Drawable() {
     /** Space around the body reserved for shadow and glow. */
@@ -121,15 +122,16 @@ internal object ShadowCache {
 }
 
 /**
- * Raised glass card: soft drop shadow, vertical surface gradient, a sheen on
- * the upper half and a lit rim along the top edge. Optional neon outline and
- * neon glow (for selected / hero cards). Stateful: dims while pressed.
+ * Card: a flat surface a shade lighter than the backdrop, outlined by a
+ * hairline. [outline] (any colors) switches to the strong white hairline used
+ * for selected cards; [glowColor] is accepted for compatibility and adds only
+ * a faint tint of the outline. Stateful: lightens slightly while pressed.
  */
 class GlassCardDrawable(
     context: Context,
     private val radius: Float = context.dp(22),
     private val topColor: Int = Neon.SURFACE_TOP,
-    private val bottomColor: Int = Neon.SURFACE_BOTTOM,
+    @Suppress("UNUSED_PARAMETER") bottomColor: Int = Neon.SURFACE_BOTTOM,
     private val elevation: Float = context.dp(14),
     var outline: IntArray? = null,
     var glowColor: Int? = null,
@@ -137,56 +139,29 @@ class GlassCardDrawable(
 ) : DepthDrawable() {
     private val density = context.resources.displayMetrics.density
     override val insets = Rect(
-        ceil(elevation * 0.9f).toInt(), ceil(elevation * 0.6f).toInt(),
-        ceil(elevation * 0.9f).toInt(), ceil(elevation * 1.3f).toInt(),
+        ceil(elevation * 0.5f).toInt(), ceil(elevation * 0.35f).toInt(),
+        ceil(elevation * 0.5f).toInt(), ceil(elevation * 0.55f).toInt(),
     )
-    private val shadowPaint = Paint(Paint.FILTER_BITMAP_FLAG).apply { color = Neon.withAlpha(0xFF000000.toInt(), 0.6f) }
-    private val glowPaint = Paint(Paint.FILTER_BITMAP_FLAG)
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val sheen = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val rim = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 1.1f * density }
-    private val border = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 1.4f * density }
-    private val press = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Neon.withAlpha(0xFF000000.toInt(), 0.22f) }
+    private val line = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 1f * density }
+    private val press = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x0FFFFFFF }
+    private val inner = RectF()
     private var pressed = false
-
-    override fun onBodyChanged() {
-        fill.shader = LinearGradient(0f, body.top, 0f, body.bottom, topColor, bottomColor, Shader.TileMode.CLAMP)
-        sheen.shader = LinearGradient(
-            0f, body.top, 0f, body.top + body.height() * 0.55f,
-            Neon.withAlpha(0xFFFFFFFF.toInt(), 0.07f), 0, Shader.TileMode.CLAMP,
-        )
-        rim.shader = LinearGradient(
-            0f, body.top, 0f, body.bottom,
-            intArrayOf(Neon.withAlpha(0xFFFFFFFF.toInt(), 0.30f), Neon.withAlpha(0xFFFFFFFF.toInt(), 0.06f), Neon.withAlpha(0xFFFFFFFF.toInt(), 0.02f)),
-            floatArrayOf(0f, 0.35f, 1f), Shader.TileMode.CLAMP,
-        )
-    }
 
     override fun draw(canvas: Canvas) {
         if (body.isEmpty) return
         val r = cornerRadius(radius)
-        val a = drawAlpha / 255f
-        shadowPaint.alpha = (0.6f * 255 * a * if (pressed) 0.7f else 1f).toInt()
-        ShadowCache.draw(canvas, body, r, elevation * 0.8f, elevation * 0.35f, shadowPaint)
-        glowColor?.let {
-            glowPaint.color = Neon.withAlpha(it, 0.45f * a)
-            ShadowCache.draw(canvas, body, r, elevation, 0f, glowPaint)
-        }
-        fill.alpha = drawAlpha
+        fill.color = topColor
+        fill.alpha = (android.graphics.Color.alpha(topColor) * drawAlpha / 255f).toInt()
         canvas.drawRoundRect(body, r, r, fill)
-        canvas.drawRoundRect(body, r, r, sheen)
-        val half = rim.strokeWidth / 2
-        val inner = RectF(body.left + half, body.top + half, body.right - half, body.bottom - half)
-        val outlineColors = outline
-        if (outlineColors != null) {
-            border.shader = LinearGradient(body.left, body.top, body.right, body.bottom, outlineColors, null, Shader.TileMode.CLAMP)
-            border.alpha = drawAlpha
-            val bh = border.strokeWidth / 2
-            canvas.drawRoundRect(RectF(body.left + bh, body.top + bh, body.right - bh, body.bottom - bh), r - bh, r - bh, border)
-        } else {
-            canvas.drawRoundRect(inner, r - half, r - half, rim)
-        }
         if (pressed) canvas.drawRoundRect(body, r, r, press)
+        val selected = outline != null
+        line.strokeWidth = (if (selected) 1.2f else 1f) * density
+        line.color = if (selected) Neon.withAlpha(Neon.TEXT1, 0.75f * drawAlpha / 255f)
+        else Neon.withAlpha(0xFFFFFFFF.toInt(), 0.11f * drawAlpha / 255f)
+        val h = line.strokeWidth / 2
+        inner.set(body.left + h, body.top + h, body.right - h, body.bottom - h)
+        canvas.drawRoundRect(inner, r - h, r - h, line)
     }
 
     override fun outlineRadius() = cornerRadius(radius)
@@ -203,70 +178,48 @@ class GlassCardDrawable(
 }
 
 /**
- * Glossy 3D push button: a darker "thickness" under the face, a diagonal
- * neon gradient face, a glossy highlight on its upper half and a colored glow
- * beneath. The face sinks into its base while pressed.
+ * Outlined pill button. White hairline for primary actions, red hairline for
+ * destructive ones ([colors] containing [Neon.RED]), a quieter grey line for
+ * everything else. Pressing fills it with a faint wash; disabled dims it.
  */
 class NeonButtonDrawable(
     context: Context,
     private val colors: IntArray = Neon.AQUA,
     private val radius: Float = -1f, // -1 = pill
-    private val depth: Float = context.dp(4),
-    private val glow: Boolean = true,
+    @Suppress("UNUSED_PARAMETER") depth: Float = context.dp(4),
+    @Suppress("UNUSED_PARAMETER") glow: Boolean = true,
 ) : DepthDrawable() {
     private val density = context.resources.displayMetrics.density
-    private val glowBlur = 14f * density
     override val insets = Rect(
-        ceil(10f * density).toInt(), ceil(6f * density).toInt(),
-        ceil(10f * density).toInt(), ceil(depth + 12f * density).toInt(),
+        ceil(4f * density).toInt(), ceil(4f * density).toInt(),
+        ceil(4f * density).toInt(), ceil(6f * density).toInt(),
     )
-    private val glowPaint = Paint(Paint.FILTER_BITMAP_FLAG)
-    private val base = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val face = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val gloss = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val rim = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 1f * density }
-    private val faceRect = RectF()
+    private val line = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 1.2f * density }
+    private val wash = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val inner = RectF()
     private var pressed = false
     private var enabled = true
 
-    override fun onBodyChanged() = updateShaders()
-
-    private fun updateShaders() {
-        val shift = if (pressed) depth * 0.7f else 0f
-        faceRect.set(body.left, body.top + shift, body.right, body.bottom - depth + shift)
-        face.shader = LinearGradient(faceRect.left, faceRect.top, faceRect.right, faceRect.bottom, colors, null, Shader.TileMode.CLAMP)
-        base.shader = LinearGradient(
-            body.left, 0f, body.right, 0f,
-            colors.map { Neon.darken(it, 0.55f) }.toIntArray(), null, Shader.TileMode.CLAMP,
-        )
-        gloss.shader = LinearGradient(
-            0f, faceRect.top, 0f, faceRect.top + faceRect.height() * 0.55f,
-            Neon.withAlpha(0xFFFFFFFF.toInt(), 0.42f), Neon.withAlpha(0xFFFFFFFF.toInt(), 0.02f), Shader.TileMode.CLAMP,
-        )
-        rim.shader = LinearGradient(
-            0f, faceRect.top, 0f, faceRect.bottom,
-            Neon.withAlpha(0xFFFFFFFF.toInt(), 0.65f), Neon.withAlpha(0xFFFFFFFF.toInt(), 0f), Shader.TileMode.CLAMP,
-        )
-    }
+    private val lineColor: Int
+        get() = when {
+            colors.contains(Neon.RED) -> Neon.RED
+            colors.all { it == Neon.CYAN } -> Neon.TEXT1
+            else -> Neon.lineTint(colors.first()).let { if (it == Neon.TEXT1) Neon.withAlpha(Neon.TEXT1, 0.55f) else it }
+        }
 
     override fun draw(canvas: Canvas) {
         if (body.isEmpty) return
-        val a = (drawAlpha / 255f) * if (enabled) 1f else 0.38f
-        val baseRect = RectF(body.left, body.top + depth, body.right, body.bottom)
-        val r = cornerRadius(radius).coerceAtMost(faceRect.height() / 2)
-        if (glow && enabled) {
-            glowPaint.color = Neon.withAlpha(Neon.blend(colors.first(), colors.last(), 0.5f), (if (pressed) 0.35f else 0.6f) * a)
-            ShadowCache.draw(canvas, baseRect, r, glowBlur, 4f * density, glowPaint)
+        val a = (drawAlpha / 255f) * if (enabled) 1f else 0.35f
+        val r = cornerRadius(radius)
+        val c = lineColor
+        if (pressed) {
+            wash.color = Neon.withAlpha(c, 0.12f * a)
+            canvas.drawRoundRect(body, r, r, wash)
         }
-        base.alpha = (255 * a).toInt()
-        face.alpha = base.alpha
-        gloss.alpha = base.alpha
-        canvas.drawRoundRect(baseRect, r, r, base)
-        canvas.drawRoundRect(faceRect, r, r, face)
-        val g = RectF(faceRect.left + 2 * density, faceRect.top + 1.5f * density, faceRect.right - 2 * density, faceRect.centerY())
-        canvas.drawRoundRect(g, r * 0.9f, r * 0.9f, gloss)
-        val h = rim.strokeWidth / 2
-        canvas.drawRoundRect(RectF(faceRect.left + h, faceRect.top + h, faceRect.right - h, faceRect.bottom - h), r, r, rim)
+        line.color = Neon.withAlpha(c, (android.graphics.Color.alpha(c) / 255f) * 0.9f * a)
+        val h = line.strokeWidth / 2
+        inner.set(body.left + h, body.top + h, body.right - h, body.bottom - h)
+        canvas.drawRoundRect(inner, r - h, r - h, line)
     }
 
     override fun outlineRadius() = cornerRadius(radius)
@@ -279,16 +232,16 @@ class NeonButtonDrawable(
         if (p == pressed && e == enabled) return false
         pressed = p
         enabled = e
-        updateShaders()
         invalidateSelf()
         return true
     }
 }
 
 /**
- * Glossy sphere (FAB, switch knob, selected day bubble): a radial light
- * falloff, a specular highlight at the top-left, a dark rim at the bottom and
- * a soft contact shadow / neon glow underneath.
+ * Circle drawn as a single thin line (FAB, record button, selected day,
+ * avatar). [color] tints the line when it carries meaning (red while
+ * recording); otherwise it is white. With [glow] set the circle also gets a
+ * whisper-faint fill so it reads as "active".
  */
 class SphereDrawable(
     context: Context,
@@ -299,51 +252,39 @@ class SphereDrawable(
 ) : DepthDrawable() {
     private val density = context.resources.displayMetrics.density
     override val insets = Rect(
-        ceil(shadow).toInt(), ceil(shadow * 0.6f).toInt(), ceil(shadow).toInt(), ceil(shadow * 1.4f).toInt(),
+        ceil(shadow * 0.4f).toInt(), ceil(shadow * 0.4f).toInt(), ceil(shadow * 0.4f).toInt(), ceil(shadow * 0.4f).toInt(),
     )
-    private val shadowPaint = Paint(Paint.FILTER_BITMAP_FLAG)
+    private val line = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 1.3f * density }
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val spec = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val rim = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 1f * density }
     private val circle = RectF()
     private var pressed = false
+
+    /** Optional opaque disc behind the line (for circles floating over content). */
+    var base: Int? = null
 
     override fun onBodyChanged() = refresh()
 
     fun refresh() {
         val d = min(body.width(), body.height())
         circle.set(body.centerX() - d / 2, body.centerY() - d / 2, body.centerX() + d / 2, body.centerY() + d / 2)
-        if (d <= 0) return
-        val c2 = color2 ?: color
-        fill.shader = RadialGradient(
-            circle.left + d * 0.36f, circle.top + d * 0.30f, d * 0.85f,
-            intArrayOf(Neon.lighten(color, 0.45f), color, Neon.blend(c2, 0xFF000000.toInt(), 0.15f), Neon.darken(c2, 0.55f)),
-            floatArrayOf(0f, 0.38f, 0.75f, 1f), Shader.TileMode.CLAMP,
-        )
-        spec.shader = RadialGradient(
-            circle.left + d * 0.34f, circle.top + d * 0.26f, d * 0.26f,
-            Neon.withAlpha(0xFFFFFFFF.toInt(), 0.85f), Neon.withAlpha(0xFFFFFFFF.toInt(), 0f), Shader.TileMode.CLAMP,
-        )
-        rim.shader = LinearGradient(
-            0f, circle.top, 0f, circle.bottom,
-            Neon.withAlpha(0xFFFFFFFF.toInt(), 0.45f), Neon.withAlpha(0xFFFFFFFF.toInt(), 0.0f), Shader.TileMode.CLAMP,
-        )
         invalidateSelf()
     }
 
     override fun draw(canvas: Canvas) {
         if (circle.isEmpty) return
         val a = drawAlpha / 255f
-        val shift = if (pressed) 1.5f * density else 0f
-        val c = RectF(circle).apply { offset(0f, shift) }
-        shadowPaint.color = if (glow) Neon.withAlpha(Neon.blend(color, color2 ?: color, 0.5f), 0.55f * a)
-        else Neon.withAlpha(0xFF000000.toInt(), 0.55f * a)
-        ShadowCache.draw(canvas, c, 0f, shadow, shadow * (if (pressed) 0.2f else 0.4f), shadowPaint, oval = true)
-        fill.alpha = drawAlpha
-        canvas.drawOval(c, fill)
-        canvas.drawOval(c, spec)
-        val h = rim.strokeWidth / 2
-        canvas.drawOval(RectF(c.left + h, c.top + h, c.right - h, c.bottom - h), rim)
+        val c = Neon.lineTint(color)
+        base?.let {
+            fill.color = Neon.withAlpha(it, a)
+            canvas.drawOval(circle, fill)
+        }
+        if (glow || pressed) {
+            fill.color = Neon.withAlpha(c, (if (pressed) 0.16f else 0.06f) * a)
+            canvas.drawOval(circle, fill)
+        }
+        line.color = Neon.withAlpha(c, android.graphics.Color.alpha(c) / 255f * 0.92f * a)
+        val h = line.strokeWidth / 2
+        canvas.drawOval(RectF(circle.left + h, circle.top + h, circle.right - h, circle.bottom - h), line)
     }
 
     override fun getOutline(outline: Outline) {
@@ -363,9 +304,8 @@ class SphereDrawable(
 }
 
 /**
- * Inset (sunken) well for text fields, slider tracks and switch tracks: dark
- * fill, inner shadow along the top, faint lit lip along the bottom. Shows a
- * neon outline + glow while focused (or when [active] is set).
+ * Field / track well: transparent with a resting hairline that turns into a
+ * strong white line while focused (or when [active] is set).
  */
 class SunkenDrawable(
     context: Context,
@@ -377,43 +317,19 @@ class SunkenDrawable(
     private val density = context.resources.displayMetrics.density
     override val insets = Rect(ceil(4 * density).toInt(), ceil(4 * density).toInt(), ceil(4 * density).toInt(), ceil(4 * density).toInt())
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val inner = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val lip = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 1f * density }
-    private val border = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 1.6f * density }
-    private val glowPaint = Paint(Paint.FILTER_BITMAP_FLAG)
+    private val line = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 1f * density }
     private var focused = false
-
-    override fun onBodyChanged() {
-        fill.color = fillColor
-        inner.shader = LinearGradient(
-            0f, body.top, 0f, body.top + (10 * density).coerceAtMost(body.height() * 0.6f),
-            Neon.withAlpha(0xFF000000.toInt(), 0.65f), 0, Shader.TileMode.CLAMP,
-        )
-        lip.shader = LinearGradient(
-            0f, body.top, 0f, body.bottom,
-            Neon.withAlpha(0xFFFFFFFF.toInt(), 0f), Neon.withAlpha(0xFFFFFFFF.toInt(), 0.12f), Shader.TileMode.CLAMP,
-        )
-        border.shader = LinearGradient(body.left, 0f, body.right, 0f, activeColors, null, Shader.TileMode.CLAMP)
-    }
 
     override fun draw(canvas: Canvas) {
         if (body.isEmpty) return
         val r = cornerRadius(radius)
         val on = active || focused
-        if (on) {
-            glowPaint.color = Neon.withAlpha(activeColors.first(), 0.35f * drawAlpha / 255f)
-            ShadowCache.draw(canvas, body, r, 3.5f * density, 0f, glowPaint)
-        }
-        fill.alpha = drawAlpha
+        fill.color = Neon.withAlpha(fillColor, 0.6f * drawAlpha / 255f)
         canvas.drawRoundRect(body, r, r, fill)
-        canvas.drawRoundRect(body, r, r, inner)
-        val h = lip.strokeWidth / 2
-        canvas.drawRoundRect(RectF(body.left + h, body.top + h, body.right - h, body.bottom - h), r, r, lip)
-        if (on) {
-            border.shader = LinearGradient(body.left, 0f, body.right, 0f, activeColors, null, Shader.TileMode.CLAMP)
-            val b = border.strokeWidth / 2
-            canvas.drawRoundRect(RectF(body.left + b, body.top + b, body.right - b, body.bottom - b), r, r, border)
-        }
+        line.color = if (on) Neon.withAlpha(Neon.lineTint(activeColors.first()), 0.8f * drawAlpha / 255f)
+        else Neon.withAlpha(0xFFFFFFFF.toInt(), 0.13f * drawAlpha / 255f)
+        val h = line.strokeWidth / 2
+        canvas.drawRoundRect(RectF(body.left + h, body.top + h, body.right - h, body.bottom - h), r - h, r - h, line)
     }
 
     override fun outlineRadius() = cornerRadius(radius)
@@ -430,33 +346,49 @@ class SunkenDrawable(
 }
 
 /**
- * Full-screen app backdrop: deep navy gradient lit by soft neon glows
- * (blue/violet top-left, cyan top-right, magenta bottom-right).
+ * Full-screen backdrop: a night sky. Near-black with a barely-there lift at
+ * the top, a sparse field of faint stars (deterministic, so screenshots are
+ * stable) and a soft horizon haze low on the screen tinted by [accent]'s
+ * first color only when it signals something (red on the ringing screen).
  */
 class GlowBackgroundDrawable(private val accent: IntArray = intArrayOf(Neon.BLUE, Neon.CYAN, Neon.MAGENTA)) : Drawable() {
     private val base = Paint()
-    private val glows = List(3) { Paint(Paint.ANTI_ALIAS_FLAG) }
+    private val haze = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val star = Paint(Paint.ANTI_ALIAS_FLAG)
+    private var stars = FloatArray(0)
 
     override fun onBoundsChange(bounds: Rect) {
         val w = bounds.width().toFloat().coerceAtLeast(1f)
         val h = bounds.height().toFloat().coerceAtLeast(1f)
-        base.shader = LinearGradient(0f, 0f, 0f, h, intArrayOf(Neon.BG1, Neon.BG0, Neon.BG0), floatArrayOf(0f, 0.55f, 1f), Shader.TileMode.CLAMP)
-        val spots = listOf(
-            Triple(w * 0.05f, h * 0.06f, 0.30f),
-            Triple(w * 1.0f, h * 0.18f, 0.12f),
-            Triple(w * 0.95f, h * 0.92f, 0.16f),
+        base.shader = LinearGradient(0f, 0f, 0f, h, intArrayOf(0xFF0B0D12.toInt(), Neon.BG0, Neon.BG0), floatArrayOf(0f, 0.6f, 1f), Shader.TileMode.CLAMP)
+        val tint = if (accent.first() == Neon.RED) Neon.RED else 0xFF8FA6C8.toInt()
+        haze.shader = RadialGradient(
+            w * 0.5f, h * 1.05f, maxOf(w, h) * 0.6f,
+            Neon.withAlpha(tint, if (accent.first() == Neon.RED) 0.16f else 0.07f), Neon.withAlpha(tint, 0f), Shader.TileMode.CLAMP,
         )
-        spots.forEachIndexed { i, (x, y, alpha) ->
-            glows[i].shader = RadialGradient(
-                x, y, maxOf(w, h) * 0.55f,
-                Neon.withAlpha(accent[i], alpha), Neon.withAlpha(accent[i], 0f), Shader.TileMode.CLAMP,
-            )
+        // x, y, radius, alpha — a seeded LCG keeps the sky identical between runs.
+        val dpx = (bounds.width() / 360f).coerceAtLeast(1f)
+        val n = ((w / dpx) * (h / dpx) / 3000f).toInt().coerceIn(24, 140)
+        var seed = 0x2545F491L
+        fun rnd(): Float { seed = (seed * 6364136223846793005L + 1442695040888963407L); return ((seed ushr 33) % 10000L) / 10000f }
+        val s = FloatArray(n * 4)
+        val d = dpx
+        for (i in 0 until n) {
+            s[i * 4] = bounds.left + rnd() * w
+            s[i * 4 + 1] = bounds.top + rnd() * rnd() * h * 0.75f
+            s[i * 4 + 2] = (0.35f + rnd() * rnd() * 0.9f) * d
+            s[i * 4 + 3] = 0.08f + rnd() * rnd() * 0.42f
         }
+        stars = s
     }
 
     override fun draw(canvas: Canvas) {
         canvas.drawRect(bounds, base)
-        glows.forEach { canvas.drawRect(bounds, it) }
+        for (i in 0 until stars.size / 4) {
+            star.color = Neon.withAlpha(0xFFFFFFFF.toInt(), stars[i * 4 + 3])
+            canvas.drawCircle(stars[i * 4], stars[i * 4 + 1], stars[i * 4 + 2], star)
+        }
+        canvas.drawRect(bounds, haze)
     }
 
     override fun setAlpha(alpha: Int) {}

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Material Symbols Rounded (Apache License 2.0) -->
+<!-- Material Symbols Rounded, weight 200 outline (Apache License 2.0) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp"
     android:viewportWidth="960" android:viewportHeight="960">
     <group android:translateX="-0" android:translateY="960">
-        <path android:fillColor="#FFFFFFFF" android:pathData="M400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-382q0-17 11.5-28.5T520-840h160q17 0 28.5 11.5T720-800v80q0 17-11.5 28.5T680-680H560v400q0 66-47 113t-113 47Z" />
+        <path android:fillColor="#FFFFFFFF" android:pathData="M402.31-167.69q-49.5 0-84.75-35.25t-35.25-84.75q0-49.5 35.25-84.75t84.75-35.25q23 0 43.65 8.19 20.66 8.19 36.35 24.58V-760q0-13.73 9.38-23.02t23.24-9.29h130.51q13.87 0 23.06 9.29t9.19 23.02v36.92q0 13.73-9.29 23.02-9.28 9.29-23.02 9.29H522.31v403.08q0 49.5-35.25 84.75t-84.75 35.25Z" />
     </group>
 </vector>

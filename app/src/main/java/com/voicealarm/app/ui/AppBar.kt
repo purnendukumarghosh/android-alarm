@@ -329,19 +329,19 @@ class AppBar @JvmOverloads constructor(
         super.onSizeChanged(w, h, oldw, oldh)
         backdropPaint.shader = LinearGradient(
             0f, 0f, 0f, h.toFloat(),
-            Neon.BG1, Neon.blend(Neon.BG1, Neon.SURFACE_BOTTOM, 0.55f), Shader.TileMode.CLAMP,
+            Neon.BG1, Neon.BG0, Shader.TileMode.CLAMP,
         )
         sheenPaint.shader = LinearGradient(
             0f, 0f, 0f, h.toFloat(),
-            Neon.withAlpha(0xFFFFFFFF.toInt(), 0.0f), Neon.withAlpha(0xFFFFFFFF.toInt(), 0.035f), Shader.TileMode.CLAMP,
+            Neon.withAlpha(0xFFFFFFFF.toInt(), 0.0f), Neon.withAlpha(0xFFFFFFFF.toInt(), 0.0f), Shader.TileMode.CLAMP,
         )
         hairlinePaint.shader = LinearGradient(
             0f, 0f, w.toFloat(), 0f,
             intArrayOf(
-                Neon.withAlpha(0xFFFFFFFF.toInt(), 0.05f),
-                Neon.withAlpha(Neon.CYAN, 0.42f),
-                Neon.withAlpha(Neon.VIOLET, 0.42f),
-                Neon.withAlpha(0xFFFFFFFF.toInt(), 0.05f),
+                Neon.withAlpha(0xFFFFFFFF.toInt(), 0.12f),
+                Neon.withAlpha(0xFFFFFFFF.toInt(), 0.12f),
+                Neon.withAlpha(0xFFFFFFFF.toInt(), 0.12f),
+                Neon.withAlpha(0xFFFFFFFF.toInt(), 0.12f),
             ),
             floatArrayOf(0f, 0.3f, 0.7f, 1f), Shader.TileMode.CLAMP,
         )
@@ -391,9 +391,9 @@ class AppBar @JvmOverloads constructor(
 }
 
 /**
- * Round glass icon button of the app chrome: raised glass body with a lit rim
- * and soft shadow, sinks (scales down + dims) while pressed, AQUA outline when
- * focused by keyboard / D-pad. The visible body is [bodySize]; the view adds
+ * Round icon button of the app chrome: a line icon inside a faint hairline
+ * ring; sinks (scales down) while pressed, bright ring when focused by
+ * keyboard / D-pad. The visible body is [bodySize]; the view adds
  * the glass shadow insets around it so the touch target is ≥ 48dp.
  */
 internal class NavIconButton(
@@ -403,8 +403,7 @@ internal class NavIconButton(
     private val glass = GlassCardDrawable(
         context,
         radius = -1f,
-        topColor = Neon.blend(Neon.SURFACE_TOP, Neon.SURFACE_HI, 0.35f),
-        bottomColor = Neon.SURFACE_BOTTOM,
+        topColor = 0,
         elevation = context.dp(7),
         pressable = true,
     )

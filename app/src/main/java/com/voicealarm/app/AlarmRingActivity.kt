@@ -115,7 +115,7 @@ class AlarmRingActivity : Activity() {
 
     private fun buildUi(): View {
         val root = FrameLayout(this).apply {
-            background = GlowBackgroundDrawable(intArrayOf(Neon.RED, Neon.MAGENTA, Neon.VIOLET))
+            background = GlowBackgroundDrawable(intArrayOf(Neon.RED, Neon.RED, Neon.RED))
         }
         val column = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -129,10 +129,10 @@ class AlarmRingActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setPadding(dpi(14), dpi(6), dpi(16), dpi(6))
-            depthBackground(GlassCardDrawable(context, radius = -1f, elevation = dp(8), outline = Neon.FLAME))
+            depthBackground(GlassCardDrawable(context, radius = -1f, elevation = dp(8), topColor = 0))
             addView(ImageView(context).apply {
                 setImageResource(R.drawable.ic_notifications_active_fill)
-                imageTintList = ColorStateList.valueOf(Neon.MAGENTA)
+                imageTintList = ColorStateList.valueOf(Neon.RED)
             }, LinearLayout.LayoutParams(dpi(18), dpi(18)))
             addView(TextView(context).apply {
                 setTextAppearance(R.style.Text_Overline)
@@ -195,10 +195,10 @@ class AlarmRingActivity : Activity() {
             setPadding(dpi(28), 0, dpi(28), 0)
             isClickable = true
             isFocusable = true
-            depthBackground(GlassCardDrawable(context, radius = -1f, elevation = dp(10), outline = Neon.ELECTRIC, pressable = true))
+            depthBackground(GlassCardDrawable(context, radius = -1f, elevation = dp(10), topColor = 0, outline = Neon.AQUA, pressable = true))
             addView(ImageView(context).apply {
                 setImageResource(R.drawable.ic_snooze)
-                imageTintList = ColorStateList.valueOf(Neon.CYAN)
+                imageTintList = ColorStateList.valueOf(Neon.TEXT1)
             }, LinearLayout.LayoutParams(dpi(22), dpi(22)))
             addView(snoozeText, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { marginStart = dpi(10) })
             setOnClickListener { act(AlarmService.ACTION_SNOOZE) }

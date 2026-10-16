@@ -110,13 +110,12 @@ class AlarmsPage(private val activity: Activity, private val host: PageHost) : P
 
     private fun nextHero(alarm: Alarm): View {
         nextAt = AlarmScheduler.nextTrigger(alarm)
-        val card = activity.glassCard(padH = 22, padV = 20, glow = Neon.withAlpha(Neon.BLUE, 0.9f),
-            outline = intArrayOf(Neon.withAlpha(Neon.CYAN, 0.7f), Neon.withAlpha(Neon.VIOLET, 0.5f)), pressable = true, radiusDp = 26)
+        val card = activity.glassCard(padH = 22, padV = 20, pressable = true, radiusDp = 26)
         card.setOnClickListener { host.openEditor(alarm.id) }
         card.addView(activity.overline(activity.getString(R.string.alarms_next)))
         val (time, ampm) = splitTime(alarm)
         val timeRow = activity.hbox(Gravity.BOTTOM).apply {
-            addView(activity.label(time, R.style.Text_Display, sizeSp = 64f).apply { neonText(Neon.AQUA) })
+            addView(activity.label(time, R.style.Text_Display, sizeSp = 68f))
             if (ampm.isNotEmpty()) addView(activity.label(ampm, R.style.Text_Title, Neon.TEXT2, 20f).apply { setPadding(dpi(8), 0, 0, dpi(10)) })
         }
         card.addView(timeRow, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = activity.dpi(2) })
@@ -139,7 +138,7 @@ class AlarmsPage(private val activity: Activity, private val host: PageHost) : P
     }
 
     private fun emptyHero(): View {
-        val card = activity.glassCard(padH = 24, padV = 24, glow = Neon.withAlpha(Neon.VIOLET, 0.8f), radiusDp = 26)
+        val card = activity.glassCard(padH = 24, padV = 24, radiusDp = 26)
         card.gravity = Gravity.CENTER_HORIZONTAL
         card.addView(ImageView(activity).apply { setImageResource(R.drawable.art_clock); contentDescription = null },
             LinearLayout.LayoutParams(activity.dpi(190), activity.dpi(190)))
@@ -244,9 +243,9 @@ class AlarmsPage(private val activity: Activity, private val host: PageHost) : P
 
     private fun pill(iconRes: Int, text: CharSequence, color: Int): LinearLayout = activity.hbox().apply {
         setPadding(dpi(12), dpi(5), dpi(14), dpi(5))
-        depthBackground(GlassCardDrawable(context, radius = -1f, elevation = dp(4), topColor = Neon.withAlpha(color, 0.16f), bottomColor = Neon.withAlpha(color, 0.06f)))
+        depthBackground(GlassCardDrawable(context, radius = -1f, elevation = dp(4), topColor = 0))
         addView(activity.icon(iconRes, color, 16), LinearLayout.LayoutParams(dpi(16), dpi(16)).apply { marginEnd = dpi(6) })
-        addView(activity.label(text, R.style.Text_Caption, Neon.TEXT1, 13f))
+        addView(activity.label(text, R.style.Text_Caption, Neon.TEXT2, 13f))
     }
 
     private fun splitTime(alarm: Alarm): Pair<String, String> {

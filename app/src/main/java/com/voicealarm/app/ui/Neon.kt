@@ -2,46 +2,61 @@ package com.voicealarm.app.ui
 
 import android.content.Context
 import android.graphics.Color
-import android.graphics.LinearGradient
-import android.graphics.Shader
 import android.view.View
 import android.widget.TextView
 
 /**
- * "Neon Night" design tokens. Keep in sync with res/values/colors.xml.
+ * "Monoline" design tokens. Keep in sync with res/values/colors.xml.
  *
- * Gradients:
- *  - AQUA     cyan → green     primary actions, "on" states, FAB
- *  - FLAME    red → magenta    ringing alarm, dismiss, destructive
- *  - ELECTRIC blue → violet    secondary accents, selection
+ * The interface is drawn in thin white lines on near-black, like a watch face
+ * at night. Color is never decoration: it only signals state, as a small dot
+ * or a single thin line (green = on, red = ringing / destructive, amber =
+ * needs attention). The legacy names (CYAN, AQUA, ...) are kept so every
+ * screen picks up the new language from here.
  */
 object Neon {
-    const val BG0 = 0xFF05070F.toInt()
-    const val BG1 = 0xFF0A0F24.toInt()
-    const val BG2 = 0xFF11163A.toInt()
+    const val BG0 = 0xFF050608.toInt()
+    const val BG1 = 0xFF0A0B0F.toInt()
+    const val BG2 = 0xFF121419.toInt()
 
-    const val SURFACE_TOP = 0xFF1D2354.toInt()
-    const val SURFACE_BOTTOM = 0xFF12163A.toInt()
-    const val SURFACE_HI = 0xFF283070.toInt()
-    const val SUNKEN = 0xFF070A1C.toInt()
+    const val SURFACE_TOP = 0xFF0D0E12.toInt()
+    const val SURFACE_BOTTOM = 0xFF0B0C10.toInt()
+    const val SURFACE_HI = 0xFF15171C.toInt()
+    const val SUNKEN = 0xFF07080A.toInt()
 
-    const val CYAN = 0xFF00E5FF.toInt()
-    const val GREEN = 0xFF2BFF88.toInt()
-    const val BLUE = 0xFF3D7BFF.toInt()
-    const val VIOLET = 0xFF8A5CFF.toInt()
-    const val RED = 0xFFFF2E63.toInt()
-    const val MAGENTA = 0xFFFF3CAC.toInt()
-    const val AMBER = 0xFFFFB443.toInt()
+    /** Hairlines: resting, and selected / focused. */
+    const val LINE = 0x24FFFFFF
+    const val LINE_STRONG = 0xCCFFFFFF.toInt()
 
-    const val TEXT1 = 0xFFF2F5FF.toInt()
-    const val TEXT2 = 0xFFA3ACD9.toInt()
-    const val TEXT3 = 0xFF67709E.toInt()
-    /** Text on bright neon (aqua) buttons. */
-    const val ON_NEON = 0xFF04101F.toInt()
+    /** Primary "accent" is plain white: lines, active states, primary text. */
+    const val CYAN = 0xFFF2F3F5.toInt()
+    const val GREEN = 0xFF8EE6B0.toInt()
+    const val BLUE = 0xFF94B4FF.toInt()
+    const val VIOLET = 0xFFB7AAFF.toInt()
+    const val RED = 0xFFFF5D6C.toInt()
+    const val MAGENTA = 0xFFFF7C9C.toInt()
+    const val AMBER = 0xFFF0C46C.toInt()
 
-    val AQUA = intArrayOf(CYAN, GREEN)
-    val FLAME = intArrayOf(RED, MAGENTA)
-    val ELECTRIC = intArrayOf(BLUE, VIOLET)
+    const val TEXT1 = 0xFFF2F3F5.toInt()
+    const val TEXT2 = 0xFF9A9DA6.toInt()
+    const val TEXT3 = 0xFF5F626B.toInt()
+    /** Foreground on primary controls (outlined, so it is white too). */
+    const val ON_NEON = TEXT1
+
+    val AQUA = intArrayOf(CYAN, CYAN)
+    val FLAME = intArrayOf(RED, RED)
+    val ELECTRIC = intArrayOf(BLUE, BLUE)
+
+    /**
+     * Icons stay monochrome line-art: saturated tints collapse to white,
+     * except the two signal colors that carry meaning (red, amber).
+     */
+    fun lineTint(color: Int): Int {
+        if (color == 0 || color == RED || color == AMBER) return color
+        val hsv = FloatArray(3)
+        Color.colorToHSV(color, hsv)
+        return if (hsv[1] < 0.2f) color else TEXT1
+    }
 
     fun withAlpha(color: Int, alpha: Float): Int =
         (color and 0x00FFFFFF) or ((alpha.coerceIn(0f, 1f) * 255).toInt() shl 24)
@@ -65,21 +80,17 @@ fun View.dp(value: Number): Float = context.dp(value)
 fun View.dpi(value: Number): Int = context.dpi(value)
 
 /**
- * Paints the text with a horizontal neon gradient and a soft glow of the
- * first color. Re-applies itself whenever the view is laid out.
+ * Former neon gradient text. In the Monoline language emphasis comes from
+ * size and weight, so this just clears any shader / glow and uses the
+ * primary text color.
  */
+@Suppress("UNUSED_PARAMETER")
 fun TextView.neonText(colors: IntArray = Neon.AQUA, glow: Boolean = true) {
-    fun apply() {
-        val w = if (width > 0) width.toFloat() else paint.measureText(text.toString())
-        paint.shader = LinearGradient(0f, 0f, w.coerceAtLeast(1f), 0f, colors, null, Shader.TileMode.CLAMP)
-        invalidate()
-    }
-    if (glow) setShadowLayer(dp(14), 0f, 0f, Neon.withAlpha(colors.first(), 0.55f))
     (getTag(NEON_TEXT_TAG) as? View.OnLayoutChangeListener)?.let { removeOnLayoutChangeListener(it) }
-    val listener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> apply() }
-    setTag(NEON_TEXT_TAG, listener)
-    addOnLayoutChangeListener(listener)
-    apply()
+    setTag(NEON_TEXT_TAG, null)
+    paint.shader = null
+    setShadowLayer(0f, 0f, 0f, 0)
+    setTextColor(Neon.TEXT1)
 }
 
 private val NEON_TEXT_TAG = com.voicealarm.app.R.id.tag_neon_text

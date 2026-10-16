@@ -68,7 +68,7 @@ class NapPage(private val activity: Activity, private val host: PageHost) : Page
 
     private fun build() {
         // Hero.
-        val hero = activity.glassCard(padH = 18, padV = 16, glow = Neon.withAlpha(Neon.VIOLET, 0.8f), radiusDp = 26)
+        val hero = activity.glassCard(padH = 18, padV = 16, radiusDp = 26)
         val row = activity.hbox()
         row.addView(ImageView(activity).apply { setImageResource(R.drawable.art_moon); contentDescription = null }, LinearLayout.LayoutParams(activity.dpi(108), activity.dpi(108)))
         val t = activity.vbox()
@@ -118,13 +118,13 @@ class NapPage(private val activity: Activity, private val host: PageHost) : Page
         val card = activity.glassCard(padH = 8, padV = 14, pressable = true, radiusDp = 20)
         card.gravity = Gravity.CENTER
         if (minutes > 0) {
-            card.addView(activity.label(minutes.toString(), R.style.Text_Headline, sizeSp = 30f, gravity = Gravity.CENTER))
-            card.addView(activity.label(activity.getString(R.string.nap_min), R.style.Text_Caption, Neon.CYAN, gravity = Gravity.CENTER))
+            card.addView(activity.label(minutes.toString(), R.style.Text_Display, sizeSp = 34f, gravity = Gravity.CENTER))
+            card.addView(activity.label(activity.getString(R.string.nap_min), R.style.Text_Caption, Neon.TEXT3, gravity = Gravity.CENTER))
             card.contentDescription = activity.getString(R.string.nap_tile_cd, minutes)
             card.setOnClickListener { start(minutes, card) }
         } else {
             card.addView(activity.icon(R.drawable.ic_tune, Neon.MAGENTA, 30), LinearLayout.LayoutParams(activity.dpi(30), activity.dpi(36)))
-            card.addView(activity.label(activity.getString(R.string.nap_custom), R.style.Text_Caption, Neon.MAGENTA, gravity = Gravity.CENTER))
+            card.addView(activity.label(activity.getString(R.string.nap_custom), R.style.Text_Caption, Neon.TEXT3, gravity = Gravity.CENTER))
             card.setOnClickListener { customSheet() }
         }
         return card
@@ -134,7 +134,7 @@ class NapPage(private val activity: Activity, private val host: PageHost) : Page
         val sheet = NeonSheet(activity)
         sheet.title = activity.getString(R.string.nap_custom_title)
         val col = activity.vbox()
-        val value = activity.label(activity.getString(R.string.nap_custom_value, 25), R.style.Text_Headline, Neon.CYAN, 28f, Gravity.CENTER)
+        val value = activity.label(activity.getString(R.string.nap_custom_value, 25), R.style.Text_Display, Neon.TEXT1, 40f, Gravity.CENTER)
         val slider = NeonSlider(activity).apply {
             min = 5f; max = 180f; step = 5f; this.value = 25f
             onChange = { v, _ -> value.text = activity.getString(R.string.nap_custom_value, v.toInt()) }
@@ -190,7 +190,7 @@ class NapPage(private val activity: Activity, private val host: PageHost) : Page
             .minByOrNull { it.second } ?: return
         val (alarm, at) = soon
         upNext.addView(activity.overline(activity.getString(R.string.nap_up_next)), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = activity.dpi(22) })
-        val card = activity.glassCard(padH = 16, padV = 12, outline = Neon.AQUA)
+        val card = activity.glassCard(padH = 16, padV = 12)
         val row = activity.hbox()
         row.addView(activity.icon(R.drawable.ic_hourglass_top, Neon.CYAN, 26), LinearLayout.LayoutParams(activity.dpi(26), activity.dpi(26)).apply { marginEnd = activity.dpi(14) })
         val t = activity.vbox()

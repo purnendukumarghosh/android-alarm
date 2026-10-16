@@ -4,8 +4,6 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.RadialGradient
-import android.graphics.Shader
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -20,8 +18,9 @@ import com.voicealarm.app.R
 // ============================================================== Bottom navigation
 
 /**
- * Floating glass dock with tabs split around a raised neon "+" sphere.
- * Selected tab: filled icon in neon cyan with a glowing dot underneath.
+ * Dock in the style of a home-screen dock: thin line icons on a dark strip
+ * divided from the content by a single hairline, split around a "+" drawn as
+ * a thin circle. Selected tab: white icon + label and a small dot.
  */
 class BottomNavBar(context: Context) : FrameLayout(context) {
     data class Tab(val id: String, val iconRes: Int, val selectedIconRes: Int, val label: CharSequence)
@@ -44,11 +43,9 @@ class BottomNavBar(context: Context) : FrameLayout(context) {
     init {
         clipChildren = false
         clipToPadding = false
-        dock.depthBackground(GlassCardDrawable(context, radius = dp(28), elevation = dp(14), topColor = 0xF21D2354.toInt(), bottomColor = 0xF212163A.toInt(),
-            outline = intArrayOf(Neon.withAlpha(Neon.CYAN, 0.35f), Neon.withAlpha(Neon.VIOLET, 0.25f))))
-        addView(dock, LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dpi(66) + dock.paddingTop + dock.paddingBottom, Gravity.BOTTOM).apply {
-            leftMargin = dpi(4); rightMargin = dpi(4); bottomMargin = dpi(2)
-        })
+        dock.background = DockDrawable(dp(1))
+        dock.setPadding(dpi(8), dpi(6), dpi(8), dpi(6))
+        addView(dock, LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dpi(80), Gravity.BOTTOM))
     }
 
     fun setTabs(tabs: List<Tab>) {
@@ -83,8 +80,8 @@ class BottomNavBar(context: Context) : FrameLayout(context) {
             isClickable = true
             isFocusable = true
             contentDescription = description
-            depthBackground(SphereDrawable(context, Neon.CYAN, Neon.GREEN, glow = true, shadow = dp(12)))
-            addView(context.icon(iconRes, Neon.ON_NEON, 30), LayoutParams(dpi(30), dpi(30), Gravity.CENTER))
+            depthBackground(SphereDrawable(context, Neon.CYAN, glow = false, shadow = dp(6)).apply { base = Neon.BG0 })
+            addView(context.icon(iconRes, Neon.TEXT1, 28), LayoutParams(dpi(28), dpi(28), Gravity.CENTER))
             setOnClickListener { onClick() }
         }
         f.accessibilityDelegate = object : AccessibilityDelegate() {
@@ -94,8 +91,8 @@ class BottomNavBar(context: Context) : FrameLayout(context) {
             }
         }
         fab = f
-        val size = dpi(64)
-        addView(f, LayoutParams(size + f.paddingLeft + f.paddingRight, size + f.paddingTop + f.paddingBottom, Gravity.TOP or Gravity.CENTER_HORIZONTAL))
+        val size = dpi(58)
+        addView(f, LayoutParams(size + f.paddingLeft + f.paddingRight, size + f.paddingTop + f.paddingBottom, Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply { topMargin = dpi(8) })
         if (tabViews.isNotEmpty()) setTabs(tabViews.map { it.first })
     }
 
@@ -106,7 +103,7 @@ class BottomNavBar(context: Context) : FrameLayout(context) {
     private fun render() {
         tabViews.forEach { (tab, v) ->
             val on = tab.id == selectedId
-            val color = if (on) Neon.CYAN else Neon.TEXT3
+            val color = if (on) Neon.TEXT1 else Neon.TEXT3
             (v.getChildAt(0) as ImageView).apply {
                 setImageResource(if (on) tab.selectedIconRes else tab.iconRes)
                 imageTintList = ColorStateList.valueOf(color)
@@ -118,17 +115,28 @@ class BottomNavBar(context: Context) : FrameLayout(context) {
         }
     }
 
-    /** Glowing indicator dot under the selected tab. */
+    /** Small white dot under the selected tab. */
     private class DotDrawable : android.graphics.drawable.Drawable() {
-        private val p = Paint(Paint.ANTI_ALIAS_FLAG)
+        private val p = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Neon.TEXT1 }
         override fun draw(canvas: Canvas) {
-            val cx = bounds.exactCenterX(); val cy = bounds.exactCenterY()
-            val r = bounds.height() / 2f
-            p.shader = RadialGradient(cx, cy, r * 2.6f, Neon.withAlpha(Neon.CYAN, 0.6f), 0, Shader.TileMode.CLAMP)
-            canvas.drawCircle(cx, cy, r * 2.6f, p)
-            p.shader = null
-            p.color = Neon.CYAN
-            canvas.drawRoundRect(cx - r * 1.6f, cy - r * 0.6f, cx + r * 1.6f, cy + r * 0.6f, r, r, p)
+            canvas.drawCircle(bounds.exactCenterX(), bounds.exactCenterY(), bounds.height() * 0.32f, p)
+        }
+        override fun setAlpha(alpha: Int) {}
+        override fun setColorFilter(colorFilter: android.graphics.ColorFilter?) {}
+        @Deprecated("Deprecated in Java")
+        override fun getOpacity() = android.graphics.PixelFormat.TRANSLUCENT
+    }
+
+    /** Opaque strip that fades in from the content above, with a hairline on top. */
+    private class DockDrawable(private val line: Float) : android.graphics.drawable.Drawable() {
+        private val fill = Paint()
+        private val hair = Paint().apply { color = 0x1FFFFFFF }
+        override fun draw(canvas: Canvas) {
+            val b = bounds
+            fill.shader = android.graphics.LinearGradient(0f, b.top.toFloat(), 0f, b.bottom.toFloat(),
+                Neon.withAlpha(Neon.BG0, 0.94f), Neon.BG0, android.graphics.Shader.TileMode.CLAMP)
+            canvas.drawRect(b, fill)
+            canvas.drawRect(b.left.toFloat(), b.top.toFloat(), b.right.toFloat(), b.top + line, hair)
         }
         override fun setAlpha(alpha: Int) {}
         override fun setColorFilter(colorFilter: android.graphics.ColorFilter?) {}
@@ -137,7 +145,7 @@ class BottomNavBar(context: Context) : FrameLayout(context) {
     }
 
     companion object {
-        const val OCCUPIED_DP = 118
+        const val OCCUPIED_DP = 112
     }
 }
 
@@ -164,13 +172,13 @@ class DrawerMenu(context: Context) : FrameLayout(context) {
     init {
         val scroll = ScrollView(context).apply { isVerticalScrollBarEnabled = false; isFillViewport = true }
         list.setPadding(dpi(18), dpi(36), dpi(18), dpi(20))
-        // Header: glossy 3D logo sphere + name + greeting.
+        // Header: line-drawn logo ring + name + greeting.
         val logo = FrameLayout(context).apply {
-            depthBackground(SphereDrawable(context, Neon.CYAN, Neon.VIOLET, glow = true, shadow = dp(10)))
-            addView(context.icon(R.drawable.ic_alarm_fill, Neon.ON_NEON, 30), LayoutParams(dpi(30), dpi(30), Gravity.CENTER))
+            depthBackground(SphereDrawable(context, Neon.CYAN, glow = false, shadow = dp(4)))
+            addView(context.icon(R.drawable.ic_alarm, Neon.TEXT1, 28), LayoutParams(dpi(28), dpi(28), Gravity.CENTER))
         }
         list.addView(logo, LinearLayout.LayoutParams(dpi(60) + logo.paddingLeft + logo.paddingRight, dpi(60) + logo.paddingTop + logo.paddingBottom))
-        list.addView(context.label(context.getString(R.string.app_name), R.style.Text_Headline, sizeSp = 24f).apply { neonText(Neon.AQUA) },
+        list.addView(context.label(context.getString(R.string.app_name), R.style.Text_Headline, sizeSp = 24f),
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dpi(6) })
         list.addView(greeting)
         list.addView(context.hairline().apply { (layoutParams as LinearLayout.LayoutParams).apply { topMargin = dpi(22); bottomMargin = dpi(14) } })
@@ -209,9 +217,9 @@ class DrawerMenu(context: Context) : FrameLayout(context) {
                 isFocusable = true
                 addView(context.icon(item.iconRes, Neon.TEXT2, 22), LinearLayout.LayoutParams(dpi(22), dpi(22)).apply { marginEnd = dpi(16) })
                 addView(context.label(item.label, R.style.Text_Title, Neon.TEXT1, 16f), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-                item.badge?.let { addView(context.label(it, R.style.Text_Caption, Neon.ON_NEON).apply {
+                item.badge?.let { addView(context.label(it, R.style.Text_Caption, Neon.AMBER).apply {
                     setPadding(dpi(8), dpi(2), dpi(8), dpi(2))
-                    background = android.graphics.drawable.GradientDrawable().apply { cornerRadius = dp(10); setColor(Neon.AMBER) }
+                    background = android.graphics.drawable.GradientDrawable().apply { cornerRadius = dp(10); setStroke(dpi(1), Neon.withAlpha(Neon.AMBER, 0.6f)) }
                 }) }
                 setOnClickListener { onItemClick?.invoke(item) }
             }
@@ -227,13 +235,13 @@ class DrawerMenu(context: Context) : FrameLayout(context) {
             if (on) {
                 row.setTag(R.id.tag_depth_insets, null)
                 row.setPadding(dpi(12), 0, dpi(12), 0)
-                row.depthBackground(GlassCardDrawable(context, radius = dp(18), elevation = dp(6), topColor = Neon.SURFACE_HI, outline = Neon.AQUA, glowColor = Neon.withAlpha(Neon.CYAN, 0.5f)))
+                row.depthBackground(GlassCardDrawable(context, radius = dp(18), elevation = dp(6), topColor = Neon.SURFACE_HI, outline = Neon.AQUA))
             } else {
                 row.background = context.getDrawable(R.drawable.ctl_row_ripple)
                 row.setTag(R.id.tag_depth_insets, null)
                 row.setPadding(dpi(17), dpi(4), dpi(17), dpi(8))
             }
-            (row.getChildAt(0) as ImageView).imageTintList = ColorStateList.valueOf(if (on) Neon.CYAN else Neon.TEXT2)
+            (row.getChildAt(0) as ImageView).imageTintList = ColorStateList.valueOf(if (on) Neon.TEXT1 else Neon.TEXT2)
             row.isSelected = on
         }
     }

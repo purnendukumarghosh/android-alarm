@@ -4,12 +4,9 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Canvas
 import android.graphics.ColorFilter
-import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.PixelFormat
-import android.graphics.Rect
 import android.graphics.RectF
-import android.graphics.Shader
 import android.graphics.drawable.Drawable
 import android.view.Gravity
 import android.view.View
@@ -33,7 +30,7 @@ fun Context.label(text: CharSequence?, style: Int = R.style.Text_Body, color: In
 
 fun Context.icon(res: Int, tint: Int = Neon.TEXT1, sizeDp: Int = 24) = ImageView(this).apply {
     setImageResource(res)
-    imageTintList = ColorStateList.valueOf(tint)
+    imageTintList = ColorStateList.valueOf(Neon.lineTint(tint))
     importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     layoutParams = LinearLayout.LayoutParams(dpi(sizeDp), dpi(sizeDp))
 }
@@ -48,7 +45,7 @@ fun Context.hbox(gravity: Int = Gravity.CENTER_VERTICAL) = LinearLayout(this).ap
     this.gravity = gravity
 }
 
-/** Raised glass card (vertical). */
+/** Hairline-outlined card (vertical). */
 fun Context.glassCard(
     padH: Int = 16, padV: Int = 16,
     outline: IntArray? = null, glow: Int? = null, pressable: Boolean = false, radiusDp: Int = 22,
@@ -67,7 +64,7 @@ fun Context.overline(text: CharSequence) = label(text, R.style.Text_Overline).ap
 }
 
 fun Context.hairline() = View(this).apply {
-    setBackgroundColor(0x14FFFFFF)
+    setBackgroundColor(0x12FFFFFF)
     layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1)
 }
 
@@ -89,22 +86,21 @@ fun View.lp(
 
 fun Context.dpLp(wDp: Int, hDp: Int) = LinearLayout.LayoutParams(if (wDp < 0) wDp else dpi(wDp), if (hDp < 0) hDp else dpi(hDp))
 
-/** Rounded icon tile tinted with a neon color and a lit top rim (settings rows, features). */
+/**
+ * Thin ring that frames a line icon (settings rows, features). Monochrome:
+ * the [color] only shows when it is a signal color (red / amber).
+ */
 class TileDrawable(private val color: Int) : Drawable() {
-    private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val rim = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 2f }
-
-    override fun onBoundsChange(b: Rect) {
-        fill.shader = LinearGradient(0f, b.top.toFloat(), 0f, b.bottom.toFloat(), Neon.withAlpha(color, 0.26f), Neon.withAlpha(color, 0.08f), Shader.TileMode.CLAMP)
-        rim.shader = LinearGradient(0f, b.top.toFloat(), 0f, b.bottom.toFloat(), Neon.withAlpha(color, 0.75f), Neon.withAlpha(color, 0.05f), Shader.TileMode.CLAMP)
-    }
+    private val ring = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 2f }
 
     override fun draw(canvas: Canvas) {
         val b = RectF(bounds)
-        val r = b.width() * 0.32f
-        canvas.drawRoundRect(b, r, r, fill)
-        b.inset(1f, 1f)
-        canvas.drawRoundRect(b, r, r, rim)
+        ring.strokeWidth = b.width() / 40f * 1.0f.coerceAtLeast(1f)
+        val c = Neon.lineTint(color)
+        ring.color = if (c == Neon.TEXT1) 0x2EFFFFFF else Neon.withAlpha(c, 0.55f)
+        val h = ring.strokeWidth / 2
+        b.inset(h, h)
+        canvas.drawOval(b, ring)
     }
 
     override fun setAlpha(alpha: Int) {}
@@ -116,6 +112,6 @@ class TileDrawable(private val color: Int) : Drawable() {
 
 fun Context.iconTile(res: Int, color: Int, sizeDp: Int = 40) = FrameLayout(this).apply {
     background = TileDrawable(color)
-    addView(icon(res, color, 22), FrameLayout.LayoutParams(dpi(22), dpi(22), Gravity.CENTER))
+    addView(icon(res, color, 20), FrameLayout.LayoutParams(dpi(20), dpi(20), Gravity.CENTER))
     layoutParams = LinearLayout.LayoutParams(dpi(sizeDp), dpi(sizeDp))
 }

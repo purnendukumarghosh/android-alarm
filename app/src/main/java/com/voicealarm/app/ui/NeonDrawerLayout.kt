@@ -138,8 +138,8 @@ class NeonDrawerLayout @JvmOverloads constructor(
             }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            card.outlineAmbientShadowColor = Neon.CYAN
-            card.outlineSpotShadowColor = Neon.VIOLET
+            card.outlineAmbientShadowColor = android.graphics.Color.BLACK
+            card.outlineSpotShadowColor = android.graphics.Color.BLACK
         }
         addView(card, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
         panel.visibility = INVISIBLE
@@ -209,11 +209,11 @@ class NeonDrawerLayout @JvmOverloads constructor(
         val farX = if (isRtl) 0f else fw
         spaceGlowA.shader = RadialGradient(
             farX, fh * 0.42f, max(fw, fh) * 0.6f,
-            Neon.withAlpha(Neon.VIOLET, 0.24f), Neon.withAlpha(Neon.VIOLET, 0f), Shader.TileMode.CLAMP,
+            Neon.withAlpha(Neon.VIOLET, 0f), Neon.withAlpha(Neon.VIOLET, 0f), Shader.TileMode.CLAMP,
         )
         spaceGlowB.shader = RadialGradient(
             farX, fh * 0.95f, max(fw, fh) * 0.45f,
-            Neon.withAlpha(Neon.CYAN, 0.14f), Neon.withAlpha(Neon.CYAN, 0f), Shader.TileMode.CLAMP,
+            Neon.withAlpha(Neon.CYAN, 0f), Neon.withAlpha(Neon.CYAN, 0f), Shader.TileMode.CLAMP,
         )
         // Perspective for the Y tilt: camera ~700dp away from the card (the
         // framework divides by densityDpi and works in 1/72 inch units).
@@ -542,7 +542,7 @@ class NeonDrawerLayout @JvmOverloads constructor(
         override fun onBoundsChange(bounds: Rect) {
             rim.shader = LinearGradient(
                 bounds.left.toFloat(), bounds.top.toFloat(), bounds.right.toFloat(), bounds.bottom.toFloat(),
-                intArrayOf(Neon.CYAN, Neon.BLUE, Neon.VIOLET, Neon.MAGENTA), null, Shader.TileMode.CLAMP,
+                intArrayOf(0x33FFFFFF, 0x33FFFFFF), null, Shader.TileMode.CLAMP,
             )
         }
 
@@ -592,8 +592,8 @@ class NeonDrawerLayout @JvmOverloads constructor(
             }
             clipToOutline = true
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                outlineAmbientShadowColor = Neon.BLUE
-                outlineSpotShadowColor = Neon.VIOLET
+                outlineAmbientShadowColor = android.graphics.Color.BLACK
+                outlineSpotShadowColor = android.graphics.Color.BLACK
             }
         }
 
@@ -632,27 +632,27 @@ class NeonDrawerLayout @JvmOverloads constructor(
             )
             sheen.shader = LinearGradient(
                 0f, t, 0f, t + h * 0.35f,
-                Neon.withAlpha(0xFFFFFFFF.toInt(), 0.05f), Neon.withAlpha(0xFFFFFFFF.toInt(), 0f), Shader.TileMode.CLAMP,
+                Neon.withAlpha(0xFFFFFFFF.toInt(), 0.02f), Neon.withAlpha(0xFFFFFFFF.toInt(), 0f), Shader.TileMode.CLAMP,
             )
             val nearX = if (mirrored) r else l
             val farX = if (mirrored) l else r
             lightA.shader = RadialGradient(
                 nearX + (farX - nearX) * 0.15f, t + h * 0.05f, w * 0.95f,
-                Neon.withAlpha(Neon.VIOLET, 0.20f), Neon.withAlpha(Neon.VIOLET, 0f), Shader.TileMode.CLAMP,
+                Neon.withAlpha(Neon.VIOLET, 0f), Neon.withAlpha(Neon.VIOLET, 0f), Shader.TileMode.CLAMP,
             )
             lightB.shader = RadialGradient(
                 nearX, b, w * 0.9f,
-                Neon.withAlpha(Neon.CYAN, 0.08f), Neon.withAlpha(Neon.CYAN, 0f), Shader.TileMode.CLAMP,
+                Neon.withAlpha(Neon.CYAN, 0f), Neon.withAlpha(Neon.CYAN, 0f), Shader.TileMode.CLAMP,
             )
             val glowW = 40f * density
             edgeGlow.shader = LinearGradient(
                 farX - (if (mirrored) -glowW else glowW), 0f, farX, 0f,
-                Neon.withAlpha(Neon.CYAN, 0f), Neon.withAlpha(Neon.CYAN, 0.09f), Shader.TileMode.CLAMP,
+                Neon.withAlpha(Neon.CYAN, 0f), Neon.withAlpha(Neon.CYAN, 0f), Shader.TileMode.CLAMP,
             )
             val rimShader = LinearGradient(
                 0f, t, 0f, b,
-                intArrayOf(Neon.CYAN, Neon.BLUE, Neon.VIOLET, Neon.MAGENTA),
-                floatArrayOf(0f, 0.35f, 0.75f, 1f), Shader.TileMode.CLAMP,
+                intArrayOf(0x40FFFFFF, 0x40FFFFFF),
+                null, Shader.TileMode.CLAMP,
             )
             rim.shader = rimShader
             rimGlow.shader = rimShader
@@ -683,7 +683,7 @@ class NeonDrawerLayout @JvmOverloads constructor(
             canvas.drawRect(b, lightB)
             canvas.drawRect(b, sheen)
             canvas.drawRect(b, edgeGlow)
-            rimGlow.alpha = (255 * 0.16f).toInt()
+            rimGlow.alpha = 0
             canvas.drawPath(edgePath, rimGlow)
             rim.alpha = (255 * 0.7f).toInt()
             canvas.drawPath(edgePath, rim)

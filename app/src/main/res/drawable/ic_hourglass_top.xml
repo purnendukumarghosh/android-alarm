@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Material Symbols Rounded (Apache License 2.0) -->
+<!-- Material Symbols Rounded, weight 200 outline (Apache License 2.0) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp"
     android:viewportWidth="960" android:viewportHeight="960">
     <group android:translateX="-0" android:translateY="960">
-        <path android:fillColor="#FFFFFFFF" android:pathData="M320-160h320v-120q0-66-47-113t-113-47q-66 0-113 47t-47 113v120ZM200-80q-17 0-28.5-11.5T160-120q0-17 11.5-28.5T200-160h40v-120q0-61 28.5-114.5T348-480q-51-32-79.5-85.5T240-680v-120h-40q-17 0-28.5-11.5T160-840q0-17 11.5-28.5T200-880h560q17 0 28.5 11.5T800-840q0 17-11.5 28.5T760-800h-40v120q0 61-28.5 114.5T612-480q51 32 79.5 85.5T720-280v120h40q17 0 28.5 11.5T800-120q0 17-11.5 28.5T760-80H200Z" />
+        <path android:fillColor="#FFFFFFFF" android:pathData="M312.31-160h335.38v-120q0-70.62-48.54-120.69-48.53-50.08-119.15-50.08t-119.15 50.16Q312.31-350.44 312.31-280v120ZM220-120q-8.5 0-14.25-5.76T200-140.03q0-8.51 5.75-14.24T220-160h52.31v-120q0-74.08 45.42-131.42 45.42-57.35 116.42-68.58-71-12-116.42-68.96-45.42-56.96-45.42-131.04v-120H220q-8.5 0-14.25-5.76T200-820.03q0-8.51 5.75-14.24T220-840h520q8.5 0 14.25 5.76t5.75 14.27q0 8.51-5.75 14.24T740-800h-52.31v120q0 74.08-45.42 131.04Q596.85-492 525.85-480q71 11.23 116.42 68.58 45.42 57.34 45.42 131.42v120H740q8.5 0 14.25 5.76t5.75 14.27q0 8.51-5.75 14.24T740-120H220Z" />
     </group>
 </vector>

@@ -165,14 +165,14 @@ class AlarmEditActivity : Activity() {
         }
 
         // Hero time.
-        val hero = glassCard(padH = 20, padV = 18, glow = Neon.withAlpha(Neon.BLUE, 0.9f), outline = intArrayOf(Neon.withAlpha(Neon.CYAN, 0.7f), Neon.withAlpha(Neon.VIOLET, 0.5f)), pressable = true, radiusDp = 26)
+        val hero = glassCard(padH = 20, padV = 18, pressable = true, radiusDp = 26)
         hero.gravity = Gravity.CENTER_HORIZONTAL
         hero.contentDescription = getString(R.string.edit_change_time)
         hero.setOnClickListener { pickTime() }
         timeText = label("", R.style.Text_Display, sizeSp = 72f)
         ampmText = label("", R.style.Text_Title, Neon.TEXT2, 22f).apply { setPadding(dpi(8), 0, 0, dpi(12)) }
         hero.addView(hbox(Gravity.BOTTOM).apply { addView(timeText); addView(ampmText) })
-        ringsIn = label("", R.style.Text_Caption, Neon.CYAN, 13f, Gravity.CENTER)
+        ringsIn = label("", R.style.Text_Caption, Neon.TEXT2, 13f, Gravity.CENTER)
         hero.addView(ringsIn)
         val adjust = hbox(Gravity.CENTER)
         listOf(R.string.edit_minus5 to -5, R.string.edit_plus5 to 5, R.string.edit_plus15 to 15, R.string.edit_plus60 to 60).forEach { (res, delta) ->
@@ -260,8 +260,8 @@ class AlarmEditActivity : Activity() {
             addView(toggleRow(R.drawable.ic_waving_hand, Neon.AMBER, R.string.edit_greeting, R.string.edit_greeting_sub, greeting) { greeting = it; refreshSay() })
             addView(hairline())
             addView(toggleRow(R.drawable.ic_schedule, Neon.VIOLET, R.string.edit_say_time, R.string.edit_say_time_sub, sayTime) { sayTime = it; refreshSay() })
-            val bubble = glassCard(padH = 16, padV = 12, outline = Neon.ELECTRIC, radiusDp = 18)
-            bubble.addView(label(getString(R.string.edit_it_will_say), R.style.Text_Overline, Neon.VIOLET))
+            val bubble = glassCard(padH = 16, padV = 12, radiusDp = 18)
+            bubble.addView(label(getString(R.string.edit_it_will_say), R.style.Text_Overline))
             sayText = label("", R.style.Text_Body, Neon.TEXT1, 16f).apply { setTypeface(typeface, Typeface.ITALIC) }
             bubble.addView(sayText)
             addView(bubble, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dpi(10) })
@@ -346,7 +346,7 @@ class AlarmEditActivity : Activity() {
         val idx = full.indexOfFirst { it.isLetter() }
         timeText.text = if (idx > 0) full.substring(0, idx).trim() else full
         ampmText.text = if (idx > 0) full.substring(idx).trim() else ""
-        timeText.neonText(Neon.AQUA)
+        timeText.neonText()
         ringsIn.text = getString(R.string.edit_rings_in, Format.durationText(this, AlarmScheduler.nextTrigger(current(-1)) - System.currentTimeMillis()))
         refreshSay()
     }
@@ -358,7 +358,7 @@ class AlarmEditActivity : Activity() {
             v.setTag(R.id.tag_depth_insets, null)
             v.setPadding(0, 0, 0, 0)
             if (on) {
-                v.depthBackground(SphereDrawable(this, Neon.CYAN, Neon.GREEN, glow = true, shadow = dp(5)))
+                v.depthBackground(SphereDrawable(this, Neon.CYAN, glow = true, shadow = dp(5)))
                 v.setTextColor(Neon.ON_NEON)
             } else {
                 v.depthBackground(SunkenDrawable(this, radius = -1f).also { it.alpha = 255 })
@@ -403,7 +403,7 @@ class AlarmEditActivity : Activity() {
         recButton.background = null
         recButton.addView(RecordRings(this, recording), FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         val ball = FrameLayout(this).apply {
-            depthBackground(SphereDrawable(context, if (recording) Neon.RED else Neon.CYAN, if (recording) Neon.MAGENTA else Neon.GREEN, glow = true, shadow = dp(10)))
+            depthBackground(SphereDrawable(context, if (recording) Neon.RED else Neon.CYAN, glow = recording, shadow = dp(10)))
             addView(icon(if (recording) R.drawable.ic_stop_fill else R.drawable.ic_mic_fill, if (recording) android.graphics.Color.WHITE else Neon.ON_NEON, 40), FrameLayout.LayoutParams(dpi(40), dpi(40), Gravity.CENTER))
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }
@@ -655,7 +655,7 @@ class AlarmEditActivity : Activity() {
             val r0 = dp(52); val r1 = minOf(width, height) / 2f
             for (i in 0 until 2) {
                 val p = if (active) (phase + i / 2f) % 1f else 0.25f + i * 0.35f
-                paint.color = if (active) Neon.MAGENTA else Neon.CYAN
+                paint.color = if (active) Neon.RED else Neon.TEXT1
                 paint.alpha = ((1 - p) * (if (active) 200 else 70)).toInt()
                 paint.strokeWidth = dp(3) * (1 - p) + dp(1)
                 canvas.drawCircle(cx, cy, r0 + (r1 - r0) * p, paint)

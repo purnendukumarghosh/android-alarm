@@ -34,19 +34,23 @@ Rendered automatically by CI (Robolectric) from the latest commit; see the
 | --- | --- | --- | --- |
 | ![](https://github.com/purnendukumarghosh/android-alarm/releases/download/screenshots/03_nap.png) | ![](https://github.com/purnendukumarghosh/android-alarm/releases/download/screenshots/04_voices.png) | ![](https://github.com/purnendukumarghosh/android-alarm/releases/download/screenshots/05_settings.png) | ![](https://github.com/purnendukumarghosh/android-alarm/releases/download/screenshots/10_about.png) |
 
-## Design: "Neon Night" 3D
+## Design: "Monoline"
 
-A dark, premium look: deep navy space lit by neon glows (cyan, green, red,
-magenta, blue and violet), with:
-- glass cards that have lit rims and soft shadows,
-- glossy beveled buttons that sink when pressed,
-- glass-sphere switches and a floating 3D dock.
+Minimal and calm, like a watch face at night: thin white line icons and
+hairline shapes on a near-black sky with a few faint stars.
+- Icons are ultra-thin outlines (Material Symbols, weight 200), always
+  monochrome.
+- Cards, buttons, chips and switches are flat and outlined by a single hairline;
+  the selected one gets a bright white line instead of a glow.
+- The dock is a home-screen-style strip of line icons with a "+" drawn as a
+  thin circle.
+- Color only carries meaning: red for ringing or delete, amber for "needs
+  attention", and a red second hand on the clock.
 
 Everything is drawn in code, so it stays sharp on every screen:
-- The hamburger drawer tilts the app back in 3D when it opens.
-- The ringing screen has a live 3D clock inside pulsing neon rings.
-- The app icon and illustrations are rendered procedurally by
-  [`tools/art/render_art.py`](tools/art/render_art.py).
+- The ringing screen shows a live line-art clock inside slow hairline ripples.
+- The app icon and illustrations are generated from the same line primitives by
+  [`tools/art/line_art.py`](tools/art/line_art.py).
 
 The design system is documented in
 [`docs/design-system.md`](docs/design-system.md).
@@ -95,7 +99,7 @@ Requirements: JDK 17 and the Android SDK (API 34).
 ```bash
 ./gradlew assembleRelease          # app/build/outputs/apk/release/app-release.apk
 ./gradlew testDebugUnitTest        # screenshot tests -> app/build/screenshots/
-python3 tools/art/render_art.py    # re-render icon + illustrations (numpy, Pillow)
+python3 tools/art/line_art.py      # regenerate line-art icon + illustrations (Pillow)
 ```
 
 ### Signing
