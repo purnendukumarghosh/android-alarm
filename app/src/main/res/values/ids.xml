@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="tag_depth_insets" type="id" />
+    <item name="tag_neon_text" type="id" />
+</resources>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="about_title">About us</string>
+    <string name="about_tagline">Wake up to your own words.</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_created_by">Created by</string>
+    <string name="about_creator_name" translatable="false">Purnendu Kumar Ghosh</string>
+    <string name="about_creator_initials" translatable="false">PG</string>
+    <string name="about_creator_role">Creator of Voice Alarm</string>
+    <string name="about_linkedin_url" translatable="false">https://www.linkedin.com/in/purnendu-ghosh-b217161b4</string>
+    <string name="about_linkedin_handle" translatable="false">linkedin.com/in/purnendu-ghosh-b217161b4</string>
+    <string name="about_connect_linkedin">Connect on LinkedIn</string>
+    <string name="about_open_linkedin">Open Purnendu Kumar Ghosh\'s LinkedIn profile</string>
+    <string name="about_link_copied">Profile link copied</string>
+    <string name="about_no_browser">No app found to open the link. The link was copied instead.</string>
+    <string name="about_story_title">Our story</string>
+    <string name="about_story">Voice Alarm turns every alarm into a friendly voice that tells you why you\'re waking up: “Good morning! Time to wake up. For interview.” No more guessing what that 6 AM beep was for.</string>
+    <string name="about_special_title">What makes it special</string>
+    <string name="about_feature_speaks">Speaks your label</string>
+    <string name="about_feature_speaks_desc">Natural voices read out what each alarm is for.</string>
+    <string name="about_feature_own">Your own voice</string>
+    <string name="about_feature_own_desc">Record yourself or someone you love.</string>
+    <string name="about_feature_offline">Works offline</string>
+    <string name="about_feature_offline_desc">The voice is prepared when you save, so it rings without internet.</string>
+    <string name="about_feature_reliable">Rings on time</string>
+    <string name="about_feature_reliable_desc">Exact alarms that survive restarts and battery saver.</string>
+    <string name="about_licenses">Open-source licenses</string>
+    <string name="about_licenses_body">Manrope font — SIL Open Font License 1.1\nMaterial Symbols — Apache License 2.0\nLinkedIn logo — Simple Icons (CC0). LinkedIn is a trademark of LinkedIn Corporation.</string>
+    <string name="about_made_with">Made with ♥ by Purnendu Kumar Ghosh</string>
+    <string name="about_copyright">© 2026 Purnendu Kumar Ghosh. All rights reserved.</string>
+    <string name="about_back">Back</string>
+</resources>

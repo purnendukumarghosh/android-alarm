@@ -50,13 +50,17 @@ data class Alarm(
     }
 
     /** The sentence the alarm speaks, built to sound like a person talking to you. */
-    fun spokenText(): String {
+    fun spokenText(name: String = ""): String {
         val parts = mutableListOf<String>()
         val cleanLabel = label.trim().trimEnd('.', '!', ',').replaceFirstChar { it.uppercase() }
         val morning = hour in 3..11
+        val you = name.trim().takeIf { it.isNotEmpty() }
         if (greeting || cleanLabel.isEmpty()) {
             parts += when {
+                morning && you != null -> "Good morning, $you! Time to wake up."
                 morning -> "Good morning! Time to wake up."
+                you != null && cleanLabel.isEmpty() -> "Hey $you, this is your alarm."
+                you != null -> "Hey $you, this is your reminder."
                 cleanLabel.isEmpty() -> "Hey, this is your alarm."
                 else -> "Hey, this is your reminder."
             }

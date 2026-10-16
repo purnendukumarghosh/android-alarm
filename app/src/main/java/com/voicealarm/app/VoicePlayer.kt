@@ -139,7 +139,7 @@ class VoicePlayer(context: Context, usage: Int = AudioAttributes.USAGE_ALARM) {
     private var liveText = ""
 
     private fun startLiveTts(alarm: Alarm) {
-        liveText = alarm.spokenText()
+        liveText = alarm.spokenText(AppSettings.userName(ctx))
         // If TTS hasn't started within a few seconds, ring the normal way.
         val giveUp = Runnable { if (!stopped && liveTts != null) startRingtone() }
         main.postDelayed(giveUp, 8_000)

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="screen_gutter">20dp</dimen>
+    <dimen name="section_gap">20dp</dimen>
+    <dimen name="card_radius">22dp</dimen>
+    <dimen name="app_bar_height">64dp</dimen>
+    <dimen name="bottom_nav_height">76dp</dimen>
+    <dimen name="icon_button">48dp</dimen>
+    <dimen name="touch_min">48dp</dimen>
+</resources>

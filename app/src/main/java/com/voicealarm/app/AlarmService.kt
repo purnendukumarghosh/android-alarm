@@ -53,17 +53,19 @@ class AlarmService : Service() {
 
         wakeLock = getSystemService(PowerManager::class.java)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "VoiceAlarm:ring")
-            .apply { acquire(RING_TIMEOUT_MS + 60_000) }
+            .apply { acquire(ringTimeoutMs() + 60_000) }
 
         player = VoicePlayer(this, AudioAttributes.USAGE_ALARM).also {
-            it.play(alarm, voiceFileFor(this, alarm), loop = true, crescendo = true)
+            it.play(alarm, voiceFileFor(this, alarm), loop = true, crescendo = AppSettings.gradualVolume(this))
         }
         if (alarm.vibrate) startVibration()
 
         main.removeCallbacks(autoStop)
-        main.postDelayed(autoStop, RING_TIMEOUT_MS)
+        main.postDelayed(autoStop, ringTimeoutMs())
         sendBroadcast(Intent(ACTION_RING_STATE).setPackage(packageName))
     }
+
+    private fun ringTimeoutMs() = AppSettings.ringMinutes(this).coerceIn(1, 60) * 60_000L
 
     private fun snooze() {
         val alarm = AlarmStore.get(this, ringingAlarmId)
@@ -191,7 +193,6 @@ class AlarmService : Service() {
         private const val CHANNEL_RINGING = "ringing"
         private const val CHANNEL_INFO = "info"
         private const val NOTIF_RINGING = 1
-        private const val RING_TIMEOUT_MS = 10 * 60_000L
 
         /** Id of the alarm currently ringing, or -1. */
         @Volatile

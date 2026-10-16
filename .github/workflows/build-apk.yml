@@ -44,10 +44,25 @@ jobs:
           ./gradlew --no-daemon assembleRelease
           cp app/build/outputs/apk/release/app-release.apk VoiceAlarm.apk
 
+      # Renders every screen with Robolectric (also a crash smoke test).
+      - name: Screenshot tests
+        id: screenshots
+        continue-on-error: true
+        run: ./gradlew --no-daemon testDebugUnitTest --tests '*ScreenshotTest*'
+
       - uses: actions/upload-artifact@v4
         with:
           name: VoiceAlarm-apk
           path: VoiceAlarm.apk
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots-and-test-report
+          path: |
+            app/build/screenshots/
+            app/build/reports/tests/
+          if-no-files-found: ignore
 
       - name: Publish as the "latest" GitHub release
         env:
@@ -59,3 +74,18 @@ jobs:
             --title "Voice Alarm (build ${{ github.run_number }})" \
             --notes "Built from ${{ github.ref_name }} @ ${{ github.sha }}. Open this page on your phone, download VoiceAlarm.apk and tap it to install." \
             --latest
+
+      - name: Publish screenshots
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          files=(app/build/screenshots/*.png)
+          if [ ${#files[@]} -eq 0 ]; then echo "No screenshots"; exit 0; fi
+          gh release delete screenshots --cleanup-tag --yes || true
+          gh release create screenshots "${files[@]}" \
+            --target "${{ github.sha }}" \
+            --prerelease \
+            --title "UI screenshots (build ${{ github.run_number }})" \
+            --notes "Screens rendered by Robolectric from ${{ github.sha }} (screenshot tests: ${{ steps.screenshots.outcome }})."

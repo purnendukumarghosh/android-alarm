@@ -47,6 +47,11 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".AboutActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
             android:name=".AlarmRingActivity"
             android:excludeFromRecents="true"
             android:exported="false"
