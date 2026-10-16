@@ -21,7 +21,7 @@ import java.io.FileOutputStream
 import java.time.Duration
 
 /**
- * Renders every screen with realistic data to app/build/screenshots/*.png.
+ * Renders every screen with realistic data to PNG files in app/build/screenshots.
  * Doubles as a smoke test: each screen must create, lay out and draw without
  * crashing. CI publishes the images on the "screenshots" release.
  */
