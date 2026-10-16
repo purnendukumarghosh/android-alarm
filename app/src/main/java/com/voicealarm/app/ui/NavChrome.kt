@@ -225,6 +225,7 @@ class DrawerMenu(context: Context) : FrameLayout(context) {
         rows.forEach { (item, row) ->
             val on = item.id == selectedId
             if (on) {
+                row.setTag(R.id.tag_depth_insets, null)
                 row.setPadding(dpi(12), 0, dpi(12), 0)
                 row.depthBackground(GlassCardDrawable(context, radius = dp(18), elevation = dp(6), topColor = Neon.SURFACE_HI, outline = Neon.AQUA, glowColor = Neon.withAlpha(Neon.CYAN, 0.5f)))
             } else {

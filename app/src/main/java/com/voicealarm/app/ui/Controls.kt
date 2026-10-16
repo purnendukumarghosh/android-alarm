@@ -244,6 +244,7 @@ class NeonChip(context: Context, text: CharSequence, iconRes: Int? = null, val c
     }
 
     private fun render() {
+        setTag(R.id.tag_depth_insets, null)
         setPadding(dpi(14), dpi(6), dpi(14), dpi(6))
         depthBackground(GlassCardDrawable(context, radius = -1f, elevation = dp(5), pressable = true,
             outline = if (isOn) Neon.AQUA else null, glowColor = if (isOn) Neon.withAlpha(Neon.CYAN, 0.7f) else null))
@@ -443,6 +444,7 @@ class SegmentedControl(context: Context) : LinearLayout(context) {
         segments.forEachIndexed { i, seg ->
             val on = i == selectedIndex
             if (on) {
+                seg.setTag(R.id.tag_depth_insets, null)
                 seg.setPadding(0, 0, 0, 0)
                 seg.depthBackground(GlassCardDrawable(context, radius = -1f, elevation = dp(5), outline = Neon.AQUA, topColor = Neon.SURFACE_HI))
             } else {
