@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Voice Alarm</string>
+
+    <!-- List -->
+    <string name="add_alarm">+  Add alarm</string>
+    <string name="no_alarms">No alarms yet.\n\nTap “Add alarm”, set a time and type what it\'s for – e.g. “for interview” – and the alarm will say it out loud.</string>
+    <string name="no_label">(no label)</string>
+    <string name="voice_tts_short">speaks label</string>
+    <string name="voice_own_short">your voice</string>
+    <string name="delete_alarm">Delete this alarm?</string>
+    <string name="delete">Delete</string>
+    <string name="once">Once</string>
+    <string name="every_day">Every day</string>
+    <string name="weekdays">Weekdays</string>
+    <string name="weekends">Weekends</string>
+    <string-array name="day_short_names">
+        <item>Mon</item>
+        <item>Tue</item>
+        <item>Wed</item>
+        <item>Thu</item>
+        <item>Fri</item>
+        <item>Sat</item>
+        <item>Sun</item>
+    </string-array>
+
+    <!-- Permission banner -->
+    <string name="allow">Allow</string>
+    <string name="perm_notifications">Allow notifications so the alarm can show and ring.</string>
+    <string name="perm_exact">Allow “Alarms &amp; reminders” so alarms ring exactly on time.</string>
+    <string name="perm_full_screen">Allow full-screen alerts so the alarm screen opens over your lock screen.</string>
+    <string name="perm_tts">No text-to-speech voice found. Install “Speech Services by Google” from the Play Store, then pick it in Text-to-speech settings.</string>
+    <string name="open_settings_failed">Open Settings › Apps › Voice Alarm to allow this.</string>
+
+    <!-- Editor -->
+    <string name="new_alarm">New alarm</string>
+    <string name="edit_alarm">Edit alarm</string>
+    <string name="label_hint">What is it for? e.g. for interview</string>
+    <string name="label_title">Label (this is what the alarm will say)</string>
+    <string name="repeat_title">Repeat (leave empty to ring once)</string>
+    <string name="voice_title">Voice</string>
+    <string name="source_tts">Natural voice reads my label</string>
+    <string name="source_recording">Record my own voice</string>
+    <string name="voice_choice">Voice</string>
+    <string name="voice_auto">Automatic – most natural voice</string>
+    <string name="loading_voices">Loading voices…</string>
+    <string name="no_tts_voices">No text-to-speech voices found on this phone. Install “Speech Services by Google” from the Play Store for the most natural voices, or record your own voice instead.</string>
+    <string name="speaking_speed">Speaking speed</string>
+    <string name="speed_value">%1$s · %2$.2f×</string>
+    <string name="speed_slow">Slow and calm</string>
+    <string name="speed_natural">Natural</string>
+    <string name="speed_fast">Fast</string>
+    <string name="greeting">Start with a friendly greeting</string>
+    <string name="say_time">Also say the time</string>
+    <string name="it_will_say">It will say: “%1$s”</string>
+    <string name="voice_tip">Tip: voices marked HD or online usually sound the most human. Try a few with Preview.</string>
+    <string name="record_voice">●  Record</string>
+    <string name="stop_recording">■  Stop recording</string>
+    <string name="recording_now">Recording… speak now, e.g. “Hey, wake up! For interview.” Tap Stop when done.</string>
+    <string name="recording_hint">Record yourself (or anyone) saying the alarm message – up to 20 seconds.</string>
+    <string name="recording_ready">✓ Recording ready. Tap Preview to listen, or Record again.</string>
+    <string name="recording_failed">Could not start recording.</string>
+    <string name="mic_denied">Microphone permission is needed to record your voice.</string>
+    <string name="record_first">Record your voice first.</string>
+    <string name="preview">▶  Preview</string>
+    <string name="vibrate">Vibrate</string>
+    <string name="snooze_length">Snooze length</string>
+    <string name="minutes">%1$d minutes</string>
+    <string name="save">Save alarm</string>
+    <string name="preparing_voice">Preparing the voice…</string>
+    <string name="voice_not_ready">Voice engine is still loading, try again in a moment.</string>
+    <string name="voice_failed">Could not create the voice. Try another voice or check your text-to-speech settings.</string>
+    <string name="voice_fallback_warning">Voice could not be prepared now; the alarm will speak the label live when it rings.</string>
+    <string name="alarm_set_in">Alarm set for %1$s from now.</string>
+    <plurals name="days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <plurals name="hours">
+        <item quantity="one">%d hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
+    <plurals name="minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+
+    <!-- Ringing -->
+    <string name="snooze">Snooze</string>
+    <string name="snooze_minutes">Snooze %1$d min</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="snoozed_until">Snoozed until %1$s</string>
+    <string name="cancel_snooze">Cancel snooze</string>
+    <string name="missed_alarm">Missed alarm (%1$s)</string>
+    <string name="channel_ringing">Ringing alarms</string>
+    <string name="channel_info">Snooze &amp; missed alarms</string>
+</resources>

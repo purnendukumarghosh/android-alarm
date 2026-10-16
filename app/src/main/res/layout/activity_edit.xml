@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="24dp">
+
+        <TimePicker
+            android:id="@+id/timePicker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:timePickerMode="spinner" />
+
+        <TextView
+            style="@style/SectionTitle"
+            android:text="@string/label_title" />
+
+        <EditText
+            android:id="@+id/labelInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/label_hint"
+            android:importantForAutofill="no"
+            android:inputType="textCapSentences"
+            android:maxLength="120"
+            android:textSize="18sp" />
+
+        <TextView
+            style="@style/SectionTitle"
+            android:text="@string/repeat_title" />
+
+        <LinearLayout
+            android:id="@+id/daysRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+
+        <TextView
+            style="@style/SectionTitle"
+            android:text="@string/voice_title" />
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/sourceTts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/source_tts" />
+
+            <RadioButton
+                android:id="@+id/sourceRecording"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/source_recording" />
+        </RadioGroup>
+
+        <LinearLayout
+            android:id="@+id/ttsPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/Hint"
+                android:text="@string/voice_choice" />
+
+            <Spinner
+                android:id="@+id/voiceSpinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/voiceStatus"
+                style="@style/Hint"
+                android:layout_marginTop="4dp"
+                android:visibility="gone" />
+
+            <TextView
+                style="@style/Hint"
+                android:layout_marginTop="12dp"
+                android:text="@string/speaking_speed" />
+
+            <SeekBar
+                android:id="@+id/speedSeek"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/speedValue"
+                style="@style/Hint" />
+
+            <CheckBox
+                android:id="@+id/greetingCheck"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/greeting" />
+
+            <CheckBox
+                android:id="@+id/sayTimeCheck"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/say_time" />
+
+            <TextView
+                android:id="@+id/spokenText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textSize="15sp"
+                android:textStyle="italic" />
+
+            <TextView
+                style="@style/Hint"
+                android:layout_marginTop="6dp"
+                android:text="@string/voice_tip" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/recordPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/recordStatus"
+                style="@style/Hint" />
+
+            <Button
+                android:id="@+id/recordButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/record_voice" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/previewButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/preview" />
+
+        <CheckBox
+            android:id="@+id/vibrateCheck"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/vibrate" />
+
+        <TextView
+            style="@style/Hint"
+            android:layout_marginTop="8dp"
+            android:text="@string/snooze_length" />
+
+        <Spinner
+            android:id="@+id/snoozeSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="24dp"
+            android:backgroundTint="@color/accent"
+            android:text="@string/save"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/deleteButton"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/delete"
+            android:textColor="#E53935" />
+    </LinearLayout>
+</ScrollView>

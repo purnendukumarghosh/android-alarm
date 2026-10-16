@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#3949AB</color>
+    <color name="primary_dark">#283593</color>
+    <color name="accent">#FF7043</color>
+    <color name="banner_bg">#FFF3E0</color>
+    <color name="banner_text">#5D4037</color>
+    <color name="secondary_text">#757575</color>
+    <color name="ring_bg">#1A237E</color>
+    <color name="ring_text">#FFFFFF</color>
+    <color name="ring_subtext">#C5CAE9</color>
+    <color name="snooze_bg">#3F51B5</color>
+    <color name="dismiss_bg">#FF7043</color>
+    <color name="icon_bg">#3949AB</color>
+</resources>
