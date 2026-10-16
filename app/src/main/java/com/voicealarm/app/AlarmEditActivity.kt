@@ -144,7 +144,12 @@ class AlarmEditActivity : Activity() {
         if (existing != null) appBar.addAction(R.drawable.ic_delete, getString(R.string.edit_delete)) { confirmDelete() }
         column.addView(appBar, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dpi(64)).apply { topMargin = dpi(4) })
 
-        val body = vbox().apply { setPadding(dpi(20), dpi(4), dpi(20), dpi(130)) }
+        val body = vbox().apply {
+            setPadding(dpi(20), dpi(4), dpi(20), dpi(130))
+            // Keep the label field from grabbing focus (and the keyboard) when the editor opens.
+            isFocusableInTouchMode = true
+            descendantFocusability = ViewGroup.FOCUS_BEFORE_DESCENDANTS
+        }
         val scroll = ScrollView(this).apply {
             isVerticalScrollBarEnabled = false
             clipToPadding = false
@@ -171,7 +176,8 @@ class AlarmEditActivity : Activity() {
         hero.addView(ringsIn)
         val adjust = hbox(Gravity.CENTER)
         listOf(R.string.edit_minus5 to -5, R.string.edit_plus5 to 5, R.string.edit_plus15 to 15, R.string.edit_plus60 to 60).forEach { (res, delta) ->
-            adjust.addView(NeonChip(this, getString(res), checkable = false).apply { onToggle = { shift(delta) } })
+            adjust.addView(NeonChip(this, getString(res), checkable = false).apply { onToggle = { shift(delta) } },
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         }
         hero.addView(adjust, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dpi(10) })
         body.addView(hero, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dpi(6) })

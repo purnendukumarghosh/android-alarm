@@ -30,6 +30,9 @@ class PageScroll(context: Context) {
     val column: LinearLayout = context.vbox().apply {
         setPadding(context.dpi(20), context.dpi(4), context.dpi(20), context.dpi(BottomNavBar.OCCUPIED_DP + 28))
         clipToPadding = false
+        // Take initial focus ourselves so text fields don't grab it (and pop the keyboard) on open.
+        isFocusableInTouchMode = true
+        descendantFocusability = ViewGroup.FOCUS_BEFORE_DESCENDANTS
     }
     val scroll = ScrollView(context).apply {
         isVerticalScrollBarEnabled = false

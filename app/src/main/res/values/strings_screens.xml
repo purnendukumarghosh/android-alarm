@@ -143,10 +143,10 @@
     <string name="edit_delete_body">It won\'t ring again. This can\'t be undone.</string>
     <string name="edit_rings_in">Rings in %1$s</string>
     <string name="edit_change_time">Change time</string>
-    <string name="edit_minus5">−5 min</string>
-    <string name="edit_plus5">+5 min</string>
-    <string name="edit_plus15">+15 min</string>
-    <string name="edit_plus60">+1 hour</string>
+    <string name="edit_minus5">−5m</string>
+    <string name="edit_plus5">+5m</string>
+    <string name="edit_plus15">+15m</string>
+    <string name="edit_plus60">+1h</string>
     <string name="edit_label">Label</string>
     <string name="edit_label_hint">What is it for? e.g. for interview</string>
     <string name="edit_sugg_interview">for interview</string>
