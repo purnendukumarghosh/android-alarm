@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Subtle neon press highlight for list rows and text buttons. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="#2600E5FF">
+    <item android:id="@android:id/mask">
+        <shape android:shape="rectangle">
+            <corners android:radius="14dp" />
+            <solid android:color="#FFFFFFFF" />
+        </shape>
+    </item>
+</ripple>

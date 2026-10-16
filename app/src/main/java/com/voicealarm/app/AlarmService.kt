@@ -136,6 +136,7 @@ class AlarmService : Service() {
         val title = alarm.label.ifBlank { getString(R.string.app_name) }
         val notification = Notification.Builder(this, CHANNEL_RINGING)
             .setSmallIcon(R.drawable.ic_stat_alarm)
+            .setColor(com.voicealarm.app.ui.Neon.MAGENTA)
             .setContentTitle(title)
             .setContentText(alarm.timeText(this))
             .setCategory(Notification.CATEGORY_ALARM)
@@ -156,6 +157,7 @@ class AlarmService : Service() {
     private fun notifySimple(id: Int, title: String, text: String, cancelSnooze: Boolean = false) {
         val builder = Notification.Builder(this, CHANNEL_INFO)
             .setSmallIcon(R.drawable.ic_stat_alarm)
+            .setColor(com.voicealarm.app.ui.Neon.CYAN)
             .setContentTitle(title)
             .setContentText(text.ifBlank { getString(R.string.app_name) })
             .setAutoCancel(true)

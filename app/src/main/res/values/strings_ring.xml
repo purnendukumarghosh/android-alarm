@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ring_overline">Alarm</string>
+    <string name="ring_wake_up">Wake up</string>
+    <string name="ring_speaking">“%1$s”</string>
+    <string name="ring_speaking_label">Speaking</string>
+    <string name="ring_snooze">Snooze · %1$d min</string>
+    <string name="ring_slide_to_dismiss">Slide to dismiss</string>
+    <string name="ring_dismiss_cd">Dismiss alarm</string>
+    <string name="ring_snooze_cd">Snooze for %1$d minutes</string>
+    <string name="ring_preview_badge">Preview</string>
+    <string name="ring_sample_label">For interview</string>
+    <string name="ring_brand">VOICE ALARM</string>
+</resources>

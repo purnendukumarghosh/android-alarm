@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- App chrome: drawer, app bar, bottom navigation (owner: navigation). -->
+<resources>
+    <!-- Drawer -->
+    <string name="nav_drawer_title">Navigation menu</string>
+    <string name="nav_drawer_opened">Menu opened</string>
+    <string name="nav_drawer_closed">Menu closed</string>
+    <string name="nav_drawer_greeting_default">Wake up to words that matter.</string>
+    <!-- Menu row with a count badge, e.g. "Alarms, 2 new". -->
+    <string name="nav_item_badge_count">%1$s, %2$s new</string>
+    <!-- Menu row with a dot badge. -->
+    <string name="nav_item_badge_dot">%1$s, has updates</string>
+</resources>

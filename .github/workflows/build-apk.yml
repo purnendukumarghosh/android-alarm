@@ -64,7 +64,9 @@ jobs:
             app/build/reports/tests/
           if-no-files-found: ignore
 
+      # Only replace the downloadable APK when every screen rendered without crashing.
       - name: Publish as the "latest" GitHub release
+        if: steps.screenshots.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

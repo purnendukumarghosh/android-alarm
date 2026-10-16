@@ -2,4 +2,5 @@
 <resources>
     <item name="tag_depth_insets" type="id" />
     <item name="tag_neon_text" type="id" />
+    <item name="main_drawer" type="id" />
 </resources>
