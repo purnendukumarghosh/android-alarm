@@ -156,8 +156,10 @@ class GlassCardDrawable(
         canvas.drawRoundRect(body, r, r, fill)
         if (pressed) canvas.drawRoundRect(body, r, r, press)
         val selected = outline != null
+        // A signal color in the outline (amber warning, red) is kept; anything else is white.
+        val signal = outline?.firstOrNull { it == Neon.AMBER || it == Neon.RED }
         line.strokeWidth = (if (selected) 1.2f else 1f) * density
-        line.color = if (selected) Neon.withAlpha(Neon.TEXT1, 0.75f * drawAlpha / 255f)
+        line.color = if (selected) Neon.withAlpha(signal ?: Neon.TEXT1, (if (signal != null) 0.6f else 0.75f) * drawAlpha / 255f)
         else Neon.withAlpha(0xFFFFFFFF.toInt(), 0.11f * drawAlpha / 255f)
         val h = line.strokeWidth / 2
         inner.set(body.left + h, body.top + h, body.right - h, body.bottom - h)

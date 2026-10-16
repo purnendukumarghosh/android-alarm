@@ -309,14 +309,14 @@ class AlarmEditActivity : Activity() {
 
         // Sticky footer.
         val footer = FrameLayout(this).apply {
-            setPadding(dpi(12), dpi(4), dpi(12), dpi(8))
-            depthBackground(GlassCardDrawable(context, radius = dp(28), elevation = dp(14), topColor = 0xF21D2354.toInt(), bottomColor = 0xF212163A.toInt()))
+            setPadding(dpi(20), dpi(12), dpi(20), dpi(14))
+            setBackgroundColor(Neon.BG0)
+            addView(hairline(), FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1, Gravity.TOP))
         }
         saveButton = NeonButton(this, getString(R.string.edit_save), R.drawable.ic_check, NeonButton.Kind.PRIMARY)
         saveButton.setOnClickListener { save() }
         footer.addView(saveButton, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         root.addView(footer, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM).apply {
-            leftMargin = dpi(10); rightMargin = dpi(10); bottomMargin = dpi(6)
         })
         return root
     }
