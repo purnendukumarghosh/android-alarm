@@ -7,6 +7,11 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.os.Looper
 import android.view.View
+import android.view.ViewGroup
+import android.widget.ScrollView
+import android.widget.TextView
+import com.voicealarm.app.audio.Sound
+import com.voicealarm.app.audio.SoundLibrary
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -39,6 +44,15 @@ class ScreenshotTest {
         AlarmStore.save(context, Alarm(3, 21, 30, "Take your medicine", days = 0b1111111, useRecording = true))
         AlarmStore.recordingFile(context, 3).writeBytes(ByteArray(4096))
         AlarmStore.save(context, Alarm(4, 9, 15, "Catch the flight to Delhi", days = 0))
+        // Music: two library sounds, and an alarm that rings with one of them.
+        listOf(
+            Sound("song1", "Morning Raga", "song1.m4a", 184_000, "music"),
+            Sound("clip1", "Interview day theme", "clip1.m4a", 30_000, "video"),
+        ).forEach { snd ->
+            snd.file(context).writeBytes(ByteArray(4096))
+            SoundLibrary.add(context, snd)
+        }
+        AlarmStore.save(context, Alarm(5, 5, 45, "Morning run", days = 0b1100000, musicId = "song1"))
     }
 
     @Test
@@ -78,23 +92,52 @@ class ScreenshotTest {
     fun about() = shoot(AboutActivity::class.java, "10_about", Intent())
 
     @Test
+    fun ringtoneMaker() = shoot(RingtoneMakerActivity::class.java, "12_ringtone_maker", Intent())
+
+    @Test
+    fun editorMusic() = shoot(AlarmEditActivity::class.java, "13_editor_music", Intent().putExtra("alarm_id", 5)) { activity ->
+        scrollTo(activity, context.getString(R.string.edit_sound))
+    }
+
+    @Test
     fun emptyState() {
         AlarmStore.all(context).forEach { AlarmStore.delete(context, it.id) }
         shoot(MainActivity::class.java, "11_alarms_empty", Intent().putExtra("start_tab", "alarms"))
     }
 
-    private fun <T : Activity> shoot(cls: Class<T>, name: String, intent: Intent) {
+    /** Scrolls the screen's ScrollView so the section titled [title] is near the top. */
+    private fun scrollTo(activity: Activity, title: String) {
+        fun all(v: View): List<View> = listOf(v) + ((v as? ViewGroup)?.let { g -> (0 until g.childCount).flatMap { all(g.getChildAt(it)) } } ?: emptyList())
+        val views = all(activity.window.decorView)
+        val scroll = views.filterIsInstance<ScrollView>().first()
+        val target = views.filterIsInstance<TextView>().first { it.text.toString() == title }
+        var y = 0
+        var v: View = target
+        while (v !== scroll) {
+            y += v.top
+            v = v.parent as View
+        }
+        scroll.scrollTo(0, (y - (12 * context.resources.displayMetrics.density).toInt()).coerceAtLeast(0))
+    }
+
+    private fun <T : Activity> shoot(cls: Class<T>, name: String, intent: Intent, prepare: (Activity) -> Unit = {}) {
         intent.setClass(context, cls)
         val controller = Robolectric.buildActivity(cls, intent).setup()
         // Let entrance animations, drawer animations and async callbacks finish.
         repeat(6) { shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500)) }
         val root = controller.get().window.decorView
         val dm = context.resources.displayMetrics
-        root.measure(
-            View.MeasureSpec.makeMeasureSpec(dm.widthPixels, View.MeasureSpec.EXACTLY),
-            View.MeasureSpec.makeMeasureSpec(dm.heightPixels, View.MeasureSpec.EXACTLY),
-        )
-        root.layout(0, 0, dm.widthPixels, dm.heightPixels)
+        fun layout() {
+            root.measure(
+                View.MeasureSpec.makeMeasureSpec(dm.widthPixels, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(dm.heightPixels, View.MeasureSpec.EXACTLY),
+            )
+            root.layout(0, 0, dm.widthPixels, dm.heightPixels)
+        }
+        layout()
+        prepare(controller.get())
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500))
+        layout()
         val bitmap = Bitmap.createBitmap(dm.widthPixels, dm.heightPixels, Bitmap.Config.ARGB_8888)
         root.draw(Canvas(bitmap))
         val dir = File("build/screenshots").apply { mkdirs() }

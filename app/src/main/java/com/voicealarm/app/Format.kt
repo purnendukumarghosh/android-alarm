@@ -33,4 +33,19 @@ object Format {
             else -> "${m}m"
         }
     }
+
+    /** "1:05", "12:40", "1:02:03" for media durations. */
+    fun clock(millis: Long): String {
+        val total = (millis.coerceAtLeast(0) + 500) / 1000
+        val h = total / 3600
+        val m = (total / 60) % 60
+        val s = total % 60
+        return if (h > 0) "$h:${"%02d".format(m)}:${"%02d".format(s)}" else "$m:${"%02d".format(s)}"
+    }
+
+    /** "480 KB", "3.2 MB". */
+    fun size(bytes: Long): String = when {
+        bytes >= 1024 * 1024 -> "%.1f MB".format(bytes / (1024.0 * 1024.0))
+        else -> "${(bytes + 1023) / 1024} KB"
+    }
 }

@@ -79,6 +79,7 @@ class MainActivity : Activity(), PageHost {
             DrawerMenu.Item(TAB_SETTINGS, R.drawable.ic_settings, getString(R.string.main_menu_settings)),
         ))
         menu.setSecondaryItems(listOf(
+            DrawerMenu.Item(ITEM_MAKER, R.drawable.ic_movie, getString(R.string.main_menu_maker)),
             DrawerMenu.Item(ITEM_TEST, R.drawable.ic_notifications_active, getString(R.string.main_menu_test)),
             DrawerMenu.Item(ITEM_HOW, R.drawable.ic_help, getString(R.string.main_menu_how)),
             DrawerMenu.Item(ITEM_ABOUT, R.drawable.ic_info, getString(R.string.main_menu_about)),
@@ -89,6 +90,7 @@ class MainActivity : Activity(), PageHost {
             when (item.id) {
                 ITEM_TEST -> startActivity(Intent(this, AlarmRingActivity::class.java).putExtra(AlarmRingActivity.EXTRA_PREVIEW, true))
                 ITEM_HOW -> HowItWorks.show(this)
+                ITEM_MAKER -> startActivity(Intent(this, RingtoneMakerActivity::class.java))
                 ITEM_ABOUT -> startActivity(Intent(this, AboutActivity::class.java))
                 else -> selectTab(item.id)
             }
@@ -218,6 +220,7 @@ class MainActivity : Activity(), PageHost {
         const val TAB_SETTINGS = "settings"
         private val TABS = setOf(TAB_ALARMS, TAB_NAP, TAB_VOICES, TAB_SETTINGS)
         private const val ITEM_TEST = "test"
+        private const val ITEM_MAKER = "maker"
         private const val ITEM_HOW = "how"
         private const val ITEM_ABOUT = "about"
         private const val STATE_TAB = "tab"

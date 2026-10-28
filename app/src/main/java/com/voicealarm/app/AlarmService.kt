@@ -56,7 +56,7 @@ class AlarmService : Service() {
             .apply { acquire(ringTimeoutMs() + 60_000) }
 
         player = VoicePlayer(this, AudioAttributes.USAGE_ALARM).also {
-            it.play(alarm, voiceFileFor(this, alarm), loop = true, crescendo = AppSettings.gradualVolume(this))
+            it.play(alarm, voiceFileFor(this, alarm), loop = true, crescendo = AppSettings.gradualVolume(this), musicFile = musicFileFor(this, alarm))
         }
         if (alarm.vibrate) startVibration()
 
@@ -221,6 +221,10 @@ class AlarmService : Service() {
             val speech = AlarmStore.speechFile(context, alarm.id)
             return if (speech.exists()) speech else null
         }
+
+        /** The alarm's song, if it has one and the file still exists. */
+        fun musicFileFor(context: Context, alarm: Alarm): File? =
+            if (alarm.usesMusic) com.voicealarm.app.audio.SoundLibrary.fileFor(context, alarm.musicId) else null
 
         fun ensureChannels(context: Context) {
             val nm = context.getSystemService(NotificationManager::class.java)

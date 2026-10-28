@@ -29,7 +29,14 @@ data class Alarm(
     val sayTime: Boolean = false,
     val vibrate: Boolean = true,
     val snoozeMinutes: Int = 10,
+    /** A song from the sound library to ring with (null = voice only). Ignored when [useRecording]. */
+    val musicId: String? = null,
+    /** With music: say the label first, then play the song, and repeat the label now and then. */
+    val speakWithMusic: Boolean = true,
 ) {
+    /** Rings with a song (rather than only the voice). */
+    val usesMusic: Boolean get() = musicId != null && !useRecording
+
     val isRepeating: Boolean get() = days != 0
 
     fun repeatsOn(calendarDayOfWeek: Int): Boolean {
@@ -88,6 +95,8 @@ data class Alarm(
         put("sayTime", sayTime)
         put("vibrate", vibrate)
         put("snoozeMinutes", snoozeMinutes)
+        put("musicId", musicId ?: JSONObject.NULL)
+        put("speakWithMusic", speakWithMusic)
     }
 
     companion object {
@@ -105,6 +114,8 @@ data class Alarm(
             sayTime = o.optBoolean("sayTime", false),
             vibrate = o.optBoolean("vibrate", true),
             snoozeMinutes = o.optInt("snoozeMinutes", 10),
+            musicId = if (o.isNull("musicId")) null else o.optString("musicId").takeIf { it.isNotEmpty() },
+            speakWithMusic = o.optBoolean("speakWithMusic", true),
         )
 
         fun formatTime(context: Context, hour: Int, minute: Int): String {

@@ -4,6 +4,7 @@ import android.Manifest
 import android.animation.ValueAnimator
 import android.app.Activity
 import android.app.TimePickerDialog
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -37,6 +38,7 @@ import com.voicealarm.app.ui.NeonChip
 import com.voicealarm.app.ui.NeonSheet
 import com.voicealarm.app.ui.NeonSlider
 import com.voicealarm.app.ui.SegmentedControl
+import com.voicealarm.app.ui.SoundPreview
 import com.voicealarm.app.ui.SphereDrawable
 import com.voicealarm.app.ui.SunkenDrawable
 import com.voicealarm.app.ui.Toggle3D
@@ -53,6 +55,8 @@ import com.voicealarm.app.ui.listRow
 import com.voicealarm.app.ui.neonText
 import com.voicealarm.app.ui.overline
 import com.voicealarm.app.ui.pages.sunkenInput
+import com.voicealarm.app.ui.soundRow
+import com.voicealarm.app.audio.SoundLibrary
 import com.voicealarm.app.ui.vbox
 import java.io.File
 import java.util.Calendar
@@ -75,6 +79,10 @@ class AlarmEditActivity : Activity() {
     private var sayTime = false
     private var vibrate = true
     private var snooze = 10
+    /** 0 = speaking voice, 1 = own recording, 2 = music. */
+    private var soundMode = 0
+    private var musicId: String? = null
+    private var speakWithMusic = true
 
     // views
     private lateinit var timeText: TextView
@@ -85,6 +93,9 @@ class AlarmEditActivity : Activity() {
     private val dayViews = mutableListOf<TextView>()
     private lateinit var ttsPanel: View
     private lateinit var recPanel: View
+    private lateinit var musicPanel: LinearLayout
+    private lateinit var musicList: LinearLayout
+    private val soundPreview by lazy { SoundPreview(this) }
     private lateinit var voiceValue: TextView
     private lateinit var speedValue: TextView
     private lateinit var sayText: TextView
@@ -122,6 +133,14 @@ class AlarmEditActivity : Activity() {
         initial.let {
             hour = it.hour; minute = it.minute; days = it.days; voiceName = it.voiceName; speechRate = it.speechRate
             useRecording = it.useRecording; greeting = it.greeting; sayTime = it.sayTime; vibrate = it.vibrate; snooze = it.snoozeMinutes
+            musicId = it.musicId?.takeIf { id -> SoundLibrary.get(this, id) != null }
+            speakWithMusic = it.speakWithMusic
+        }
+        intent.getStringExtra(EXTRA_MUSIC_ID)?.takeIf { SoundLibrary.get(this, it) != null }?.let { musicId = it; useRecording = false }
+        soundMode = when {
+            useRecording -> 1
+            musicId != null -> 2
+            else -> 0
         }
         draftRecording.delete()
         setContentView(buildUi())
@@ -233,14 +252,38 @@ class AlarmEditActivity : Activity() {
         repeatCard.addView(dayRow)
         section(R.string.edit_repeat, repeatCard)
 
-        // Voice.
+        // Sound: speaking voice, own recording, or music.
         val voiceCard = glassCard()
         val seg = SegmentedControl(this).apply {
-            setOptions(listOf(getString(R.string.edit_natural), getString(R.string.edit_recording)), listOf(R.drawable.ic_record_voice_over, R.drawable.ic_mic))
-            selectedIndex = if (useRecording) 1 else 0
-            onSelect = { useRecording = it == 1; stopPreview(); refreshVoicePanels() }
+            setOptions(listOf(getString(R.string.edit_seg_voice), getString(R.string.edit_seg_mine), getString(R.string.edit_seg_music)),
+                listOf(R.drawable.ic_record_voice_over, R.drawable.ic_mic, R.drawable.ic_music_note))
+            selectedIndex = soundMode
+            onSelect = { soundMode = it; useRecording = it == 1; stopPreview(); refreshVoicePanels() }
         }
         voiceCard.addView(seg)
+        musicPanel = vbox().apply {
+            setPadding(0, dpi(8), 0, 0)
+            musicList = vbox()
+            addView(musicList)
+            addView(hbox().apply {
+                setPadding(0, dpi(6), 0, dpi(2))
+                addView(NeonButton(this@AlarmEditActivity, getString(R.string.edit_music_add), R.drawable.ic_library_music, NeonButton.Kind.SECONDARY).apply {
+                    setPadding(dpi(14), paddingTop, dpi(14), paddingBottom)
+                    setOnClickListener { pickSong() }
+                }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                addView(NeonButton(this@AlarmEditActivity, getString(R.string.edit_music_from_video), R.drawable.ic_movie, NeonButton.Kind.SECONDARY).apply {
+                    setPadding(dpi(14), paddingTop, dpi(14), paddingBottom)
+                    setOnClickListener { stopPreview(); startActivityForResult(Intent(this@AlarmEditActivity, RingtoneMakerActivity::class.java).putExtra(RingtoneMakerActivity.EXTRA_FOR_ALARM, true), REQ_MAKER) }
+                }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            })
+            addView(hairline())
+            addView(toggleRow(R.drawable.ic_record_voice_over, Neon.TEXT1, R.string.edit_music_speak, R.string.edit_music_speak_sub, speakWithMusic) {
+                speakWithMusic = it
+                refreshVoicePanels()
+            })
+        }
+        voiceCard.addView(musicPanel)
+        soundPreview.onStateChange = { renderMusicList() }
         ttsPanel = vbox().apply {
             voiceValue = label("", R.style.Text_Caption, Neon.CYAN, 13f)
             addView(listRow(R.drawable.ic_voice_selection, Neon.CYAN, getString(R.string.edit_voice_row), null,
@@ -288,7 +331,7 @@ class AlarmEditActivity : Activity() {
         previewButton = NeonButton(this, getString(R.string.edit_preview), R.drawable.ic_play_arrow_fill, NeonButton.Kind.SECONDARY)
         previewButton.setOnClickListener { previewOrStop() }
         voiceCard.addView(previewButton, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dpi(12) })
-        section(R.string.edit_voice, voiceCard)
+        section(R.string.edit_sound, voiceCard)
 
         // Options.
         val options = glassCard(padV = 6)
@@ -370,9 +413,76 @@ class AlarmEditActivity : Activity() {
     }
 
     private fun refreshVoicePanels() {
-        ttsPanel.visibility = if (useRecording) View.GONE else View.VISIBLE
-        recPanel.visibility = if (useRecording) View.VISIBLE else View.GONE
+        ttsPanel.visibility = if (soundMode == 0 || (soundMode == 2 && speakWithMusic)) View.VISIBLE else View.GONE
+        recPanel.visibility = if (soundMode == 1) View.VISIBLE else View.GONE
+        musicPanel.visibility = if (soundMode == 2) View.VISIBLE else View.GONE
         refreshRecordUi()
+        renderMusicList()
+    }
+
+    private fun renderMusicList() {
+        if (!::musicList.isInitialized) return
+        musicList.removeAllViews()
+        val sounds = SoundLibrary.all(this)
+        if (sounds.isEmpty()) {
+            musicList.addView(vbox(Gravity.CENTER_HORIZONTAL).apply {
+                setPadding(0, dpi(14), 0, dpi(10))
+                addView(icon(R.drawable.ic_library_music, Neon.TEXT2, 34), LinearLayout.LayoutParams(dpi(34), dpi(34)))
+                addView(label(getString(R.string.edit_music_none), R.style.Text_Title, sizeSp = 16f, gravity = Gravity.CENTER).apply { setPadding(0, dpi(8), 0, 0) })
+                addView(label(getString(R.string.edit_music_none_sub), R.style.Text_Body, sizeSp = 13f, gravity = Gravity.CENTER))
+            }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            return
+        }
+        sounds.forEachIndexed { i, sound ->
+            if (i > 0) musicList.addView(hairline())
+            musicList.addView(soundRow(sound, soundPreview.playingKey == sound.id, sound.id == musicId,
+                onPlay = { stopPreview(); sound.file(this).takeIf { it.exists() }?.let { soundPreview.toggle(sound.id, it) } },
+                onClick = { musicId = sound.id; renderMusicList() }))
+        }
+    }
+
+    private fun pickSong() {
+        stopPreview()
+        val open = Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("audio/*")
+        try {
+            startActivityForResult(open, REQ_SONG)
+        } catch (e: android.content.ActivityNotFoundException) {
+            try {
+                startActivityForResult(Intent(Intent.ACTION_GET_CONTENT).addCategory(Intent.CATEGORY_OPENABLE).setType("audio/*"), REQ_SONG)
+            } catch (_: android.content.ActivityNotFoundException) {
+            }
+        }
+    }
+
+    private fun importSong(uri: android.net.Uri) {
+        Toast.makeText(this, R.string.edit_music_importing, Toast.LENGTH_SHORT).show()
+        val app = applicationContext
+        Thread {
+            val sound = SoundLibrary.importAudio(app, uri)
+            main.post {
+                if (isDestroyed) return@post
+                if (sound == null) return@post toast(R.string.edit_music_import_failed)
+                musicId = sound.id
+                renderMusicList()
+                Toast.makeText(this, getString(R.string.edit_music_added, sound.name), Toast.LENGTH_SHORT).show()
+            }
+        }.start()
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode != RESULT_OK) {
+            renderMusicList() // the maker may have added or deleted sounds
+            return
+        }
+        when (requestCode) {
+            REQ_SONG -> data?.data?.let { importSong(it) }
+            REQ_MAKER -> {
+                data?.getStringExtra(RingtoneMakerActivity.RESULT_SOUND_ID)?.let { musicId = it }
+                renderMusicList()
+            }
+        }
     }
 
     private fun refreshVoiceRow() {
@@ -417,9 +527,13 @@ class AlarmEditActivity : Activity() {
 
     private fun current(id: Int) = Alarm(
         id = id, hour = hour, minute = minute, label = labelEdit.text.toString().trim(), days = days, enabled = true,
-        voiceName = voiceName, speechRate = speechRate, useRecording = useRecording, greeting = greeting,
+        voiceName = voiceName, speechRate = speechRate, useRecording = soundMode == 1, greeting = greeting,
         sayTime = sayTime, vibrate = vibrate, snoozeMinutes = snooze,
+        musicId = if (soundMode == 2) musicId else null, speakWithMusic = speakWithMusic,
     )
+
+    /** The song this alarm would ring with right now, if any. */
+    private fun currentMusicFile(): File? = if (soundMode == 2) SoundLibrary.fileFor(this, musicId) else null
 
     private fun pickTime() {
         TimePickerDialog(this, R.style.NeonDialog, { _, h, m ->
@@ -471,6 +585,13 @@ class AlarmEditActivity : Activity() {
         stopRecording()
         stopPreview()
         val alarm = current(alarmId).copy(voiceName = name)
+        if (soundMode == 2) {
+            val music = currentMusicFile() ?: return toast(R.string.edit_music_pick_first)
+            if (!alarm.speakWithMusic) {
+                play(alarm, null, music)
+                return
+            }
+        }
         if (alarm.useRecording) {
             val f = currentRecording() ?: return toast(R.string.record_first)
             play(alarm, f)
@@ -482,14 +603,15 @@ class AlarmEditActivity : Activity() {
         val out = File(cacheDir, "preview.wav")
         e.render(alarm.spokenText(AppSettings.userName(this)), name, alarm.speechRate, out) { ok ->
             previewButton.setLoading(false)
-            if (ok) play(alarm, out) else toast(R.string.voice_failed)
+            if (ok) play(alarm, out, currentMusicFile()) else toast(R.string.voice_failed)
         }
     }
 
-    private fun play(alarm: Alarm, file: File) {
+    private fun play(alarm: Alarm, file: File?, music: File? = null) {
+        soundPreview.stop()
         previewButton.setText(getString(R.string.edit_stop))
         player = VoicePlayer(this, AudioAttributes.USAGE_MEDIA).also {
-            it.play(alarm, file, loop = false, crescendo = false) {
+            it.play(alarm, file, loop = false, crescendo = false, musicFile = music) {
                 player = null
                 previewButton.setText(getString(R.string.edit_preview))
             }
@@ -569,6 +691,7 @@ class AlarmEditActivity : Activity() {
         stopPreview()
         val id = if (alarmId >= 0) alarmId else AlarmStore.newId(this).also { alarmId = it }
         val alarm = current(id)
+        if (soundMode == 2 && currentMusicFile() == null) return toast(R.string.edit_music_pick_first)
         if (alarm.useRecording) {
             if (hasDraftRecording) {
                 draftRecording.copyTo(AlarmStore.recordingFile(this, id), overwrite = true)
@@ -627,6 +750,7 @@ class AlarmEditActivity : Activity() {
     override fun onPause() {
         super.onPause()
         stopPreview()
+        soundPreview.stop()
     }
 
     override fun onDestroy() {
@@ -668,6 +792,10 @@ class AlarmEditActivity : Activity() {
 
     companion object {
         const val EXTRA_ID = "alarm_id"
+        /** Preselects a library sound (from the ringtone maker's "Use for a new alarm"). */
+        const val EXTRA_MUSIC_ID = "music_id"
+        private const val REQ_SONG = 3
+        private const val REQ_MAKER = 4
         private const val REQ_MIC = 2
         private const val MAX_RECORDING_S = 20
     }

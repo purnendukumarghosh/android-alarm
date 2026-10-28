@@ -14,6 +14,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Ringtone maker: save ringtones to shared storage (only needed before Android 10) -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <!-- Ringtone maker: "Set as phone ringtone" (the user grants it in system settings) -->
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
 
     <!-- Lets the app find the installed text-to-speech engines on Android 11+. -->
     <queries>
@@ -50,6 +56,22 @@
             android:name=".AboutActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".RingtoneMakerActivity"
+            android:exported="true"
+            android:label="@string/maker_title"
+            android:launchMode="singleTop"
+            android:parentActivityName=".MainActivity"
+            android:windowSoftInputMode="adjustResize">
+            <!-- "Share → Voice Alarm" from the gallery / file manager / music app. -->
+            <intent-filter android:label="@string/maker_title">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="video/*" />
+                <data android:mimeType="audio/*" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".AlarmRingActivity"

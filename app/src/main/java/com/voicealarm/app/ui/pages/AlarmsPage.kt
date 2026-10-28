@@ -131,8 +131,18 @@ class AlarmsPage(private val activity: Activity, private val host: PageHost) : P
             addView(pill(R.drawable.ic_repeat, alarm.daysText(activity), Neon.VIOLET), LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { marginStart = dpi(4) })
         }
         card.addView(chips, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = activity.dpi(12) })
-        card.addView(pill(if (alarm.useRecording) R.drawable.ic_mic else R.drawable.ic_record_voice_over,
-            activity.getString(if (alarm.useRecording) R.string.alarms_own_voice else R.string.alarms_speaks), Neon.GREEN),
+        val song = if (alarm.usesMusic) com.voicealarm.app.audio.SoundLibrary.get(activity, alarm.musicId) else null
+        card.addView(pill(
+            when {
+                song != null -> R.drawable.ic_music_note
+                alarm.useRecording -> R.drawable.ic_mic
+                else -> R.drawable.ic_record_voice_over
+            },
+            when {
+                song != null -> song.name.let { if (it.length > 28) it.take(27) + "…" else it }
+                alarm.useRecording -> activity.getString(R.string.alarms_own_voice)
+                else -> activity.getString(R.string.alarms_speaks)
+            }, Neon.GREEN),
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = activity.dpi(4) })
         return card
     }

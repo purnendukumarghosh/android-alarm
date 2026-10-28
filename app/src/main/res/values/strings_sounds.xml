@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Music alarms and the ringtone maker. -->
+<resources>
+    <!-- Editor: sound section -->
+    <string name="edit_sound">Sound</string>
+    <string name="edit_seg_voice">Voice</string>
+    <string name="edit_seg_mine">My voice</string>
+    <string name="edit_seg_music">Music</string>
+    <string name="edit_music_none">No songs yet</string>
+    <string name="edit_music_none_sub">Add a song from your phone, or turn the sound of a video into one.</string>
+    <string name="edit_music_add">Add a song</string>
+    <string name="edit_music_from_video">From a video</string>
+    <string name="edit_music_speak">Say the label first</string>
+    <string name="edit_music_speak_sub">Speaks your label, plays the song, and repeats the label every 45 seconds</string>
+    <string name="edit_music_pick_first">Pick a song first</string>
+    <string name="edit_music_importing">Adding song…</string>
+    <string name="edit_music_import_failed">That file can\'t be played. Try MP3, M4A, AAC, OGG, FLAC or WAV.</string>
+    <string name="edit_music_added">Added “%1$s”</string>
+    <string name="sound_play_cd">Play %1$s</string>
+    <string name="sound_stop_cd">Stop %1$s</string>
+    <string name="sound_kind_music">Song</string>
+    <string name="sound_kind_video">From a video</string>
+    <string name="alarms_music">Music</string>
+
+    <!-- Ringtone maker -->
+    <string name="maker_title">Ringtone maker</string>
+    <string name="maker_subtitle">Video or song → ringtone</string>
+    <string name="maker_back">Back</string>
+    <string name="maker_source">Source</string>
+    <string name="maker_pick">Choose a video</string>
+    <string name="maker_pick_sub">Any video or song on your phone: MP4, MKV, WebM, MOV, 3GP, MP3, M4A, OGG, FLAC…</string>
+    <string name="maker_change">Choose another</string>
+    <string name="maker_reading">Reading file…</string>
+    <string name="maker_info_video">Video · %1$s · sound: %2$s</string>
+    <string name="maker_info_audio">Audio · %1$s · %2$s</string>
+    <string name="maker_no_audio">This video has no sound to convert.</string>
+    <string name="maker_unsupported">This phone can\'t read the sound in that file.</string>
+    <string name="maker_failed">Conversion failed. Try another part of the video or another file.</string>
+    <string name="maker_empty">There is no sound in that part. Pick an earlier start.</string>
+    <string name="maker_clip">Clip</string>
+    <string name="maker_start">Start</string>
+    <string name="maker_length">Length</string>
+    <string name="maker_whole">Whole</string>
+    <string name="maker_seconds">%1$ds</string>
+    <string name="maker_range">%1$s → %2$s · %3$s</string>
+    <string name="maker_play_clip">Play clip</string>
+    <string name="maker_stop">Stop</string>
+    <string name="maker_format">Format</string>
+    <string name="maker_aac">AAC (.m4a)</string>
+    <string name="maker_mp3">MP3</string>
+    <string name="maker_aac_copy">The sound is already AAC, so it is copied without losing any quality.</string>
+    <string name="maker_aac_encode">The sound is converted to AAC at high quality (192 kbps). Works as a ringtone on every phone.</string>
+    <string name="maker_mp3_copy">The sound is already MP3, so it is copied without losing any quality.</string>
+    <string name="maker_mp3_no">MP3 is only possible when the video\'s sound is already MP3 (this one is %1$s): Android has no MP3 encoder. AAC plays everywhere and sounds as good or better.</string>
+    <string name="maker_name">Name</string>
+    <string name="maker_name_hint">Ringtone name</string>
+    <string name="maker_convert">Convert</string>
+    <string name="maker_converting">Converting… %1$d%%</string>
+    <string name="maker_cancel">Cancel</string>
+    <string name="maker_cancelled">Cancelled</string>
+    <string name="maker_done">Ready</string>
+    <string name="maker_done_detail">%1$s · %2$s · %3$s</string>
+    <string name="maker_done_library">Added to your alarm sounds</string>
+    <string name="maker_done_phone">Saved to Ringtones/Voice Alarm, so it appears in your phone\'s sound settings</string>
+    <string name="maker_done_phone_failed">Couldn\'t save it to the phone\'s ringtones</string>
+    <string name="maker_done_phone_permission">Allow storage access to also save it to the phone\'s ringtones</string>
+    <string name="maker_use_here">Use for this alarm</string>
+    <string name="maker_use_alarm">Use for a new alarm</string>
+    <string name="maker_set_ringtone">Set as phone ringtone</string>
+    <string name="maker_set_alarm">Set as phone\'s alarm sound</string>
+    <string name="maker_set_ringtone_done">Done. It\'s your phone\'s ringtone now.</string>
+    <string name="maker_set_alarm_done">Done. It\'s your phone\'s default alarm sound now.</string>
+    <string name="maker_set_failed">Couldn\'t change the phone\'s sound</string>
+    <string name="maker_allow_settings">Allow “Modify system settings” for Voice Alarm, then come back.</string>
+    <string name="maker_your_sounds">Your sounds</string>
+    <string name="maker_sounds_empty">Songs and clips you add show up here, ready to use in any alarm.</string>
+    <string name="maker_delete_confirm">Delete “%1$s”?</string>
+    <string name="maker_delete_body">Alarms using it will speak their label instead.</string>
+    <string name="maker_delete">Delete</string>
+    <string name="maker_keep">Keep</string>
+    <string name="maker_sound_options">Sound options</string>
+    <string name="main_menu_maker">Ringtone maker</string>
+</resources>

@@ -49,11 +49,12 @@ jobs:
           ./gradlew --no-daemon assembleRelease
           cp app/build/outputs/apk/release/app-release.apk VoiceAlarm.apk
 
-      # Renders every screen with Robolectric (also a crash smoke test).
-      - name: Screenshot tests
+      # Unit tests: renders every screen with Robolectric (also a crash smoke
+      # test) and checks the audio resampling / downmix maths.
+      - name: Unit + screenshot tests
         id: screenshots
         continue-on-error: true
-        run: ./gradlew --no-daemon testDebugUnitTest --tests '*ScreenshotTest*'
+        run: ./gradlew --no-daemon testDebugUnitTest
 
       - uses: actions/upload-artifact@v4
         with:
@@ -96,3 +97,41 @@ jobs:
             --prerelease \
             --title "UI screenshots (build ${{ github.run_number }})" \
             --notes "Screens rendered by Robolectric from ${{ github.sha }} (screenshot tests: ${{ steps.screenshots.outcome }})."
+
+  # Runs the video → audio converter against real test videos with the
+  # platform codecs of an Android emulator.
+  device-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Converter tests on an emulator (Android 11)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          target: default
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: chmod +x gradlew && ./gradlew --no-daemon connectedDebugAndroidTest
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: device-test-report
+          path: app/build/reports/androidTests/
+          if-no-files-found: ignore

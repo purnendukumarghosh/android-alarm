@@ -25,6 +25,11 @@ import kotlin.math.sin
  * Plays an alarm the way a person would wake you: a soft chime, then the
  * spoken message, a short pause, and again – getting gradually louder.
  *
+ * With a song ([musicFile]): the message is spoken first, then the song plays
+ * (looping); every [MUSIC_STRETCH_MS] the song pauses for the message and
+ * resumes where it left off. If the alarm doesn't speak with music, only the
+ * song plays.
+ *
  * Audio source, in order of preference:
  *  1. the given voice file (pre-rendered TTS or the user's own recording),
  *  2. live text-to-speech, if the file is missing,
@@ -47,6 +52,12 @@ class VoicePlayer(context: Context, usage: Int = AudioAttributes.USAGE_ALARM) {
     private var voice: MediaPlayer? = null
     private var liveTts: TextToSpeech? = null
     private var ringtone: MediaPlayer? = null
+    private var music: MediaPlayer? = null
+    private var musicOnly = false
+    private val musicAttrs = AudioAttributes.Builder()
+        .setUsage(usage)
+        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+        .build()
 
     private var stopped = true
     private var loop = false
@@ -58,6 +69,7 @@ class VoicePlayer(context: Context, usage: Int = AudioAttributes.USAGE_ALARM) {
         voiceFile: File?,
         loop: Boolean,
         crescendo: Boolean,
+        musicFile: File? = null,
         onFinished: (() -> Unit)? = null,
     ) {
         stop()
@@ -69,8 +81,12 @@ class VoicePlayer(context: Context, usage: Int = AudioAttributes.USAGE_ALARM) {
 
         chime = createPlayer(Chime.file(ctx))
         voice = voiceFile?.takeIf { it.exists() && it.length() > 0 }?.let { createPlayer(it) }
+        music = musicFile?.takeIf { it.exists() && it.length() > 0 }?.let { createPlayer(it, musicAttrs) }?.apply { isLooping = true }
+        musicOnly = music != null && !alarm.speakWithMusic
 
-        if (voice != null) {
+        if (musicOnly) {
+            playMusic()
+        } else if (voice != null) {
             cycle()
         } else {
             startLiveTts(alarm)
@@ -81,7 +97,7 @@ class VoicePlayer(context: Context, usage: Int = AudioAttributes.USAGE_ALARM) {
     fun stop() {
         stopped = true
         main.removeCallbacksAndMessages(null)
-        listOf(chime, voice, ringtone).forEach { p ->
+        listOf(chime, voice, ringtone, music).forEach { p ->
             try {
                 p?.stop()
             } catch (_: Exception) {
@@ -91,6 +107,7 @@ class VoicePlayer(context: Context, usage: Int = AudioAttributes.USAGE_ALARM) {
         chime = null
         voice = null
         ringtone = null
+        music = null
         try {
             liveTts?.stop()
             liveTts?.shutdown()
@@ -125,8 +142,47 @@ class VoicePlayer(context: Context, usage: Int = AudioAttributes.USAGE_ALARM) {
 
     private fun afterMessage() {
         if (stopped) return
+        if (music != null) {
+            playMusic()
+            return
+        }
         if (loop) {
             main.postDelayed({ cycle() }, GAP_MS)
+        } else {
+            stopped = true
+            audioManager.abandonAudioFocusRequest(focusRequest)
+            onFinished?.invoke()
+        }
+    }
+
+    // ---- music ---------------------------------------------------------------
+
+    private fun playMusic() {
+        val m = music ?: return
+        if (stopped) return
+        try {
+            m.setVolume(volume, volume)
+            m.start()
+        } catch (e: Exception) {
+            Log.e(TAG, "Cannot play music", e)
+            music = null
+            m.release()
+            if (musicOnly) startRingtone() else afterMessage()
+            return
+        }
+        if (musicOnly) return
+        main.postDelayed(musicBreak, if (loop) MUSIC_STRETCH_MS else PREVIEW_MUSIC_MS)
+    }
+
+    /** Pauses the song to say the message again (or ends a preview). */
+    private val musicBreak = Runnable {
+        if (stopped) return@Runnable
+        try {
+            music?.pause()
+        } catch (_: Exception) {
+        }
+        if (loop) {
+            cycle()
         } else {
             stopped = true
             audioManager.abandonAudioFocusRequest(focusRequest)
@@ -192,6 +248,20 @@ class VoicePlayer(context: Context, usage: Int = AudioAttributes.USAGE_ALARM) {
 
     private fun startRingtone() {
         if (ringtone != null) return
+        if (music != null && !musicOnly) {
+            // No voice available: let the song carry the alarm on its own.
+            Log.w(TAG, "Voice unavailable, playing the song only")
+            try {
+                liveTts?.shutdown()
+            } catch (_: Exception) {
+            }
+            liveTts = null
+            main.removeCallbacksAndMessages(null)
+            musicOnly = true
+            volume = 1f
+            playMusic()
+            return
+        }
         Log.w(TAG, "Falling back to the default alarm ringtone")
         try {
             liveTts?.shutdown()
@@ -229,13 +299,17 @@ class VoicePlayer(context: Context, usage: Int = AudioAttributes.USAGE_ALARM) {
             volume = (volume + VOLUME_STEP).coerceAtMost(1f)
             chime?.setVolume(volume, volume)
             voice?.setVolume(volume, volume)
+            try {
+                music?.setVolume(volume, volume)
+            } catch (_: Exception) {
+            }
             if (volume < 1f) main.postDelayed(this, 1_000)
         }
     }
 
-    private fun createPlayer(file: File): MediaPlayer? = try {
+    private fun createPlayer(file: File, attributes: AudioAttributes = attrs): MediaPlayer? = try {
         MediaPlayer().apply {
-            setAudioAttributes(attrs)
+            setAudioAttributes(attributes)
             FileInputStream(file).use { setDataSource(it.fd) }
             prepare()
             setVolume(volume, volume)
@@ -248,6 +322,9 @@ class VoicePlayer(context: Context, usage: Int = AudioAttributes.USAGE_ALARM) {
     companion object {
         private const val TAG = "VoicePlayer"
         private const val GAP_MS = 2_500L
+        /** How long the song plays between repeats of the spoken message. */
+        private const val MUSIC_STRETCH_MS = 45_000L
+        private const val PREVIEW_MUSIC_MS = 12_000L
         private const val START_VOLUME = 0.25f
         private const val VOLUME_STEP = 0.025f // full volume after ~30 s
     }
