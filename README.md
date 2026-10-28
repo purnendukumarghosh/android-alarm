@@ -60,6 +60,15 @@ The design system is documented in
 - **Speaks your label**: natural text-to-speech voices read out what each
   alarm is for, optionally greeting you by name and saying the time.
 - **Your own voice**: record yourself, or someone you love, instead.
+- **Music alarms**: ring with any song on your phone (MP3, M4A, AAC, OGG,
+  FLAC, WAV…). By default the alarm says your label first, plays the song,
+  and repeats the label every 45 seconds; or let the song play on its own.
+- **Ringtone maker**: pick (or share to the app) any video or song, choose
+  a clip, and turn its sound into an AAC (.m4a) ringtone on the phone itself,
+  with no upload. MP3 output is offered when the video's sound is already MP3
+  (Android has no MP3 encoder). The result is added to your alarm sounds, saved
+  to `Ringtones/Voice Alarm` so the phone's own sound settings list it, and
+  can be set as the phone ringtone or alarm sound in one tap.
 - **Voice studio**: pick the default voice (with previews), speaking speed,
   your name, and try any phrase.
 - **Quick nap**: one tap for a 10 to 90 minute nap that tells you why it's
