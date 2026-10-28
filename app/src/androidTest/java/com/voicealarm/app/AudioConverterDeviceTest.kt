@@ -82,7 +82,10 @@ class AudioConverterDeviceTest {
             AudioConverter.convert(app, fixture(name), o, format, startMs, endMs) { lastProgress = it }
         } catch (e: AudioConverter.ConversionException) {
             if (e.reason != AudioConverter.Reason.FAILED) throw e
-            throw AssertionError("conversion of $name failed:\n" + Log.getStackTraceString(e), e)
+            val root = e.cause ?: e
+            // One line: the CI console only shows the first lines of a failure.
+            throw AssertionError("conversion of $name failed: $root @ " +
+                root.stackTrace.take(10).joinToString(" < ") { "${it.className.substringAfterLast('.')}.${it.methodName}:${it.lineNumber}" }, e)
         }
         assertEquals(1f, lastProgress)
         return r
