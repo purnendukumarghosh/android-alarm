@@ -78,7 +78,12 @@ class AudioConverterDeviceTest {
     private fun convert(name: String, format: Format, startMs: Long = 0, endMs: Long = 0): AudioConverter.Result {
         val o = out(name.substringBeforeLast('.') + "_${startMs}_$endMs." + format.extension)
         var lastProgress = 0f
-        val r = AudioConverter.convert(app, fixture(name), o, format, startMs, endMs) { lastProgress = it }
+        val r = try {
+            AudioConverter.convert(app, fixture(name), o, format, startMs, endMs) { lastProgress = it }
+        } catch (e: AudioConverter.ConversionException) {
+            if (e.reason != AudioConverter.Reason.FAILED) throw e
+            throw AssertionError("conversion of $name failed:\n" + Log.getStackTraceString(e), e)
+        }
         assertEquals(1f, lastProgress)
         return r
     }

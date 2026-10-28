@@ -60,7 +60,8 @@ object AudioConverter {
             }
     }
 
-    class ConversionException(val reason: Reason, cause: Throwable? = null) : Exception(reason.name, cause)
+    class ConversionException(val reason: Reason, cause: Throwable? = null) :
+        Exception(if (cause == null) reason.name else "${reason.name}: $cause", cause)
 
     enum class Reason { NO_AUDIO, UNSUPPORTED, CANCELLED, EMPTY, FAILED }
 
