@@ -132,6 +132,18 @@ class AudioConverterDeviceTest {
     }
 
     @Test
+    fun mp3InMp4_wholeBecomesAac() {
+        val r = convert("h264_mp3.mp4", Format.AAC)
+        assertAudio(r.file, AudioConverter.MIME_AAC, 3_000, tolMs = 300)
+    }
+
+    @Test
+    fun mp3InMp4_clipFromMiddleBecomesAac() {
+        val r = convert("h264_mp3.mp4", Format.AAC, startMs = 1_000, endMs = 2_500)
+        assertAudio(r.file, AudioConverter.MIME_AAC, 1_500, tolMs = 300)
+    }
+
+    @Test
     fun surround96kFlac_isDownmixedAndResampled() {
         val info = AudioConverter.probe(app, fixture("h264_flac51_96k.mkv"))
         assertEquals(6, info.channels)

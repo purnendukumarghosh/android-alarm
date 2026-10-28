@@ -134,6 +134,17 @@ object AudioConverter {
                     ex.seekTo(startUs, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
                     transcodeToAac(ex, fmt, out, startUs, endUs, cancel, progress)
                 }
+                mime == MIME_MP3 -> try {
+                    transcodeToAac(ex, fmt, out, startUs, endUs, cancel, progress)
+                } catch (e: ConversionException) {
+                    throw e
+                } catch (e: Exception) {
+                    // Some MP3 decoders reject MP3 frames as an MP4/MKV track presents
+                    // them, but decode the same frames fine as a plain .mp3 file.
+                    out.delete()
+                    ex.seekTo(startUs, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
+                    viaPlainMp3(ex, out, startUs, endUs, cancel, progress)
+                }
                 else -> transcodeToAac(ex, fmt, out, startUs, endUs, cancel, progress)
             }
             onProgress(1f)
@@ -177,6 +188,25 @@ object AudioConverter {
         }
         if (first < 0) throw ConversionException(Reason.EMPTY)
         return Result(out, (last - first) / 1000 + 26, Format.MP3, reencoded = false)
+    }
+
+    /** Copies the MP3 frames into a temporary .mp3 file and re-encodes that. */
+    private fun viaPlainMp3(ex: MediaExtractor, out: File, startUs: Long, endUs: Long, cancel: AtomicBoolean, progress: (Long) -> Unit): Result {
+        val tmp = File(out.parentFile, out.nameWithoutExtension + ".src.mp3")
+        try {
+            copyMp3(ex, tmp, startUs, endUs, cancel) { }
+            val ex2 = MediaExtractor()
+            try {
+                ex2.setDataSource(tmp.absolutePath)
+                val track = audioTrack(ex2) ?: throw ConversionException(Reason.EMPTY)
+                ex2.selectTrack(track)
+                return transcodeToAac(ex2, ex2.getTrackFormat(track), out, 0, Long.MAX_VALUE, cancel) { pts -> progress(startUs + pts) }
+            } finally {
+                ex2.release()
+            }
+        } finally {
+            tmp.delete()
+        }
     }
 
     private fun remuxAac(ex: MediaExtractor, fmt: MediaFormat, out: File, startUs: Long, endUs: Long, cancel: AtomicBoolean, progress: (Long) -> Unit): Result {
@@ -236,6 +266,7 @@ object AudioConverter {
             var isFloat = false
             var resampler: Resampler? = null
             var idleAfterInput = 0
+            var lastQueuedPts = 0L
             while (true) {
                 if (cancel.get()) throw ConversionException(Reason.CANCELLED)
                 if (!inputDone) {
@@ -245,9 +276,11 @@ object AudioConverter {
                         val size = ex.readSampleData(inBuf, 0)
                         val pts = ex.sampleTime
                         if (size < 0 || pts > endUs) {
-                            decoder.queueInputBuffer(idx, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                            // EOS keeps the stream's timestamps increasing (some decoders insist).
+                            decoder.queueInputBuffer(idx, 0, 0, lastQueuedPts, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
                             inputDone = true
                         } else {
+                            lastQueuedPts = pts
                             decoder.queueInputBuffer(idx, 0, size, pts, 0)
                             ex.advance()
                         }
